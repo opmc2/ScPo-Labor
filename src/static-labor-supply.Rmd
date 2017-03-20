@@ -9,6 +9,7 @@ require(xtable)
 require(pander)
 require(data.table)
 require(ggplot2)
+require(dplyr)
 ```
 
 You can find the source code for this file in the class repository. The direct link is [here](https://raw.githubusercontent.com/tlamadon/econ-34430/master/src/static-labor-supply.Rmd)
@@ -21,7 +22,7 @@ $$
 $$
 The individual takes his wage $w$ as given, he chooses hours of work $h$ and consumption $c$ subject to a given non labor income $\mu$ as well as a tax regime defined by $\rho,r$. $\beta_0$ is a fixed cost associated with working.
 
-We note already that the non labor income can control for dynamic labor supply since we can have $\mu= b_t - (1+r)b_{t+1}$. This is part of a larger maximization problem where the agents choose optimaly $b_t$ over time. We will get there next time.
+We note already that the non-labor income can control for dynamic labor supply since we can have $\mu= b_t - (1+r)b_{t+1}$. This is part of a larger maximization problem where the agents choose optimaly $b_t$ over time. We will get there next time.
 
 ### Interior solution
 
@@ -82,7 +83,7 @@ simdata[,p1:=u1>u0]
 ggplot(simdata,aes(x=u0,y=u1)) + geom_point() + geom_abline(linetype=2)
 ```
 
-The regression still works, among ecah individual who chooses to work, the FOC is still satified.
+The regression still works, among each individual who chooses to work, the FOC is still satisfied.
 
 ```{r}
 pander(summary(simdata[p1==TRUE,lm(lw ~ log(c) + log(h))]))
@@ -126,15 +127,50 @@ pander(sfit)
  
 # Repeated cross-section version
 
-In this section we want to get closer to the Blundell, Duncan and Meghir (1998) exercice. We first modify the cost to allow for an increase return to X, and for the presence of a change in the tax rate. Simulate wages according to:
+In this section we want to get closer to the Blundell, Duncan and Meghir (1998) exercise. We first modify the cost to allow for an increased return to X, and for the presence of a change in the tax rate. Simulate wages according to:
 
-```r
+```
   simdata[,lw := lb*X + rnorm(N)*0.2];      # add a wage which depends on X
 ```
 
-Write a function that can simulate a full cross section and that takes `lb` as inpute as well as marginal tax rate $\rho$. It should apply the same function as before to solve for the interior solution, but use the after-tax wage every where.
+Write a function that can simulate a full cross section and that takes `lb` as an input as well as marginal tax rate $\rho$. It should apply the same function as before to solve for the interior solution, but use the after-tax wage everywhere.
+
+```{r function to simulate cross section}
+full_cross_section <- function(lb, N, rho, X){
+  #parameters
+  p  = list(eta=-1.5,gamma = 0.8,beta=1,beta0=0.1) # define preferences
+  
+  #simulating data
+  simdata = data.table(i=1:N,X)
+  simdata[,lw := lb*X + rnorm(N)*0.2];      # add a wage which depends on X and lb
+  simdata[,mu := exp(0.3*X + rnorm(N)*0.2)]; # add non-labor income that also depends on X
+  
+  # we then solve for the choice of hours and consumption
+  simdata[, h := pmax(-mu + p$beta0 ,0)/(rho*exp(lw))+1] # starting value
+  # for loop for newton method (30 should be enough, it is fast)
+  for (i in 1:30) {
+      simdata[, h := ff.newt(h,rho*exp(lw),mu-p$beta0,p$eta,p$gamma,p$beta) ]
+    }
+
+  # attach consumption, value of working
+  simdata[, c  := rho*exp(lw)*h + mu - p$beta0];
+  simdata[, u1 := c^(1+p$eta)/(1+p$eta) - p$beta * h^(1+p$gamma)/(1+p$gamma) ];
+}
+```
 
  **Q3:** simulate two cross-sections with $(lb=1,\rho=1)$ and $(lb=1.5,\rho=0.8)$ and use 10k indivduals. Simulate data without participation decision for now. Combine the data and show that previous regression provides biased estimates. Then slice X into K categories (for example using quantiles). Then compute $\log(w)$, $\log(c)$ and $\log(h)$ within each group and time period. Run the regression in first differences and show that this recovers the structural parameters.
+ 
+```{r simulate data and run regression}
+simdata2 <- rbind(full_cross_section(1,10000,1,rnorm(10000)), full_cross_section(1.5,10000,.8,rnorm(10000)))
+pander(summary(simdata2[,lm(lw ~ log(c) + log(h))]))
+```
+```{r}
+simdata3 <- simdata2[,t := rep(c(0,1),each = 10000)]
+simdataD <- simdata3[]
+pander(summary(simdata3[,lm(lw[t==1]-lw[t==0] ~ log(c[t==1])-log(c[t==0]) + log(h[t==1])-log(h[t==0]))]))
+```
+```{r}
+quantX <- quantile(simdata3$X, )
 
  **Q4:** Add the participation decision to the data generating process. Show that the results are now biased.
  
