@@ -166,9 +166,16 @@ pander(summary(simdata2[,lm(lw ~ log(c) + log(h))]))
 ```
 ```{r}
 simdata3 <- simdata2[,t := rep(c(0,1),each = 10000)]
-simdataD <- simdata3[]
-pander(summary(simdata3[,lm(lw[t==1]-lw[t==0] ~ log(c[t==1])-log(c[t==0]) + log(h[t==1])-log(h[t==0]))]))
+simdataD <- data.table(i=seq(1:N))
+for (iter in 1:N){
+  simdataD[i==iter, lc := log(simdata3[i==iter & t==1, c]) - log(simdata3[i==iter & t==0, c])]
+  simdataD[i==iter, lw := simdata3[i==iter & t==1, lw] - simdata3[i==iter & t==0, lw]]
+  simdataD[i==iter, lh := log(simdata3[i==iter & t==1, h]) - log(simdata3[i==iter & t==0, h])]
+}
+pander(summary(simdataD[,lm(lw ~ lc + lh)]))
 ```
+
+
 ```{r}
 quantX <- quantile(simdata3$X, )
 
