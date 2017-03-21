@@ -300,23 +300,23 @@ simdata[, u1 := c^(1+p$eta)/(1+p$eta) - p$beta * h^(1+p$gamma)/(1+p$gamma) ];</c
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
 <td align="center">1.5</td>
-<td align="center">1.327e-17</td>
-<td align="center">1.13e+17</td>
+<td align="center">1.836e-17</td>
+<td align="center">8.168e+16</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
 <td align="center">0.8</td>
-<td align="center">3.301e-17</td>
-<td align="center">2.424e+16</td>
+<td align="center">4.19e-17</td>
+<td align="center">1.909e+16</td>
 <td align="center">0</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">4.494e-16</td>
-<td align="center">2.818e-17</td>
-<td align="center">15.95</td>
-<td align="center">3.634e-51</td>
+<td align="center">0</td>
+<td align="center">3.638e-17</td>
+<td align="center">0</td>
+<td align="center">1</td>
 </tr>
 </tbody>
 </table>
@@ -339,7 +339,7 @@ simdata[, u1 := c^(1+p$eta)/(1+p$eta) - p$beta * h^(1+p$gamma)/(1+p$gamma) ];</c
 <tbody>
 <tr class="odd">
 <td align="center">1000</td>
-<td align="center">2.53e-16</td>
+<td align="center">3.476e-16</td>
 <td align="center">1</td>
 <td align="center">1</td>
 </tr>
@@ -378,23 +378,23 @@ ggplot(simdata,aes(x=u0,y=u1)) + geom_point() + geom_abline(linetype=2)</code></
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
 <td align="center">1.5</td>
-<td align="center">2.411e-17</td>
-<td align="center">6.221e+16</td>
+<td align="center">2.427e-17</td>
+<td align="center">6.18e+16</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
 <td align="center">0.8</td>
-<td align="center">9.089e-17</td>
-<td align="center">8.802e+15</td>
+<td align="center">8.771e-17</td>
+<td align="center">9.121e+15</td>
 <td align="center">0</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">1.284e-16</td>
-<td align="center">6.14e-17</td>
-<td align="center">2.091</td>
-<td align="center">0.03689</td>
+<td align="center">1.266e-16</td>
+<td align="center">5.916e-17</td>
+<td align="center">2.139</td>
+<td align="center">0.03273</td>
 </tr>
 </tbody>
 </table>
@@ -416,8 +416,8 @@ ggplot(simdata,aes(x=u0,y=u1)) + geom_point() + geom_abline(linetype=2)</code></
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">766</td>
-<td align="center">3.523e-16</td>
+<td align="center">788</td>
+<td align="center">3.574e-16</td>
 <td align="center">1</td>
 <td align="center">1</td>
 </tr>
@@ -470,24 +470,24 @@ expect_false(coef(sfit)[&quot;log(c)&quot;,1]==-p$eta)</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
-<td align="center">2.093</td>
-<td align="center">0.02305</td>
-<td align="center">90.77</td>
+<td align="center">2.114</td>
+<td align="center">0.02447</td>
+<td align="center">86.38</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
-<td align="center">0.2684</td>
-<td align="center">0.03169</td>
-<td align="center">8.468</td>
-<td align="center">1.052e-16</td>
+<td align="center">0.3036</td>
+<td align="center">0.03246</td>
+<td align="center">9.354</td>
+<td align="center">7.061e-20</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">-0.5645</td>
-<td align="center">0.01553</td>
-<td align="center">-36.35</td>
-<td align="center">1.238e-176</td>
+<td align="center">-0.548</td>
+<td align="center">0.01571</td>
+<td align="center">-34.88</td>
+<td align="center">4.54e-167</td>
 </tr>
 </tbody>
 </table>
@@ -509,10 +509,10 @@ expect_false(coef(sfit)[&quot;log(c)&quot;,1]==-p$eta)</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">872</td>
-<td align="center">0.1599</td>
-<td align="center">0.9677</td>
-<td align="center">0.9676</td>
+<td align="center">867</td>
+<td align="center">0.1604</td>
+<td align="center">0.9653</td>
+<td align="center">0.9652</td>
 </tr>
 </tbody>
 </table>
@@ -535,17 +535,22 @@ expect_false(coef(sfit)[&quot;log(c)&quot;,1]==-p$eta)</code></pre>
   simdata = data.table(i=1:N,X)
   simdata[,lw := lb*X + rnorm(N)*0.2];      # add a wage which depends on X and lb
   simdata[,mu := exp(0.3*X + rnorm(N)*0.2)]; # add non-labor income that also depends on X
+  simdata[,betai := exp(0.5*X+rnorm(N)*0.1)]
   
-  # we then solve for the choice of hours and consumption
-  simdata[, h := pmax(-mu + p$beta0 ,0)/(rho*exp(lw))+1] # starting value
-  # for loop for newton method (30 should be enough, it is fast)
+  #hours first guess
+  simdata[, h := pmax(-mu + p$beta0 ,0)/exp(lw)+1]
+  
+  #solve for choice of hours and consumption
   for (i in 1:30) {
-      simdata[, h := ff.newt(h,rho*exp(lw),mu-p$beta0,p$eta,p$gamma,p$beta) ]
-    }
+    simdata[, h := ff.newt(h,rho*exp(lw),mu-tx$r-p$beta0,p$eta,p$gamma,betai) ]
+  }
 
-  # attach consumption, value of working
+  # attach consumption
   simdata[, c  := rho*exp(lw)*h + mu - p$beta0];
-  simdata[, u1 := c^(1+p$eta)/(1+p$eta) - p$beta * h^(1+p$gamma)/(1+p$gamma) ];
+  simdata[, u1 := c^(1+p$eta)/(1+p$eta) - betai * h^(1+p$gamma)/(1+p$gamma) ];
+  simdata[, u0:=  mu^(1+p$eta)/(1+p$eta)];
+  simdata[,p1:=u1&gt;u0]
+
 }
 
 full_cross_section &lt;- function(lb, N, rho){ # draws new X in period 2.
@@ -556,17 +561,21 @@ full_cross_section &lt;- function(lb, N, rho){ # draws new X in period 2.
   simdata = data.table(i=1:N,X=rnorm(N))
   simdata[,lw := lb*X + rnorm(N)*0.2];      # add a wage which depends on X and lb
   simdata[,mu := exp(0.3*X + rnorm(N)*0.2)]; # add non-labor income that also depends on X
+  simdata[,betai := exp(0.5*X+rnorm(N)*0.1)]
   
-  # we then solve for the choice of hours and consumption
-  simdata[, h := pmax(-mu + p$beta0 ,0)/(rho*exp(lw))+1] # starting value
-  # for loop for newton method (30 should be enough, it is fast)
+  #hours first guess
+  simdata[, h := pmax(-mu + p$beta0 ,0)/exp(lw)+1]
+  
+  #solve for choice of hours and consumption
   for (i in 1:30) {
-      simdata[, h := ff.newt(h,rho*exp(lw),mu-p$beta0,p$eta,p$gamma,p$beta) ]
-    }
+    simdata[, h := ff.newt(h,rho*exp(lw),mu-p$beta0,p$eta,p$gamma,betai) ]
+  }
 
-  # attach consumption, value of working
+  # attach consumption
   simdata[, c  := rho*exp(lw)*h + mu - p$beta0];
-  simdata[, u1 := c^(1+p$eta)/(1+p$eta) - p$beta * h^(1+p$gamma)/(1+p$gamma) ];
+  simdata[, u1 := c^(1+p$eta)/(1+p$eta) - betai * h^(1+p$gamma)/(1+p$gamma) ];
+  simdata[, u0:=  mu^(1+p$eta)/(1+p$eta)];
+  simdata[,p1:=u1&gt;u0]
 }</code></pre>
 <p><strong>Q3:</strong> simulate two cross-sections with <span class="math inline">\((lb=1,\rho=1)\)</span> and <span class="math inline">\((lb=1.5,\rho=0.8)\)</span> and use 10k indivduals. Simulate data without participation decision for now. Combine the data and show that previous regression provides biased estimates. Then slice X into K categories (for example using quantiles). Then compute <span class="math inline">\(\log(w)\)</span>, <span class="math inline">\(\log(c)\)</span> and <span class="math inline">\(\log(h)\)</span> within each group and time period. Run the regression in first differences and show that this recovers the structural parameters.</p>
 <pre class="r"><code>simdata2 &lt;- rbind(full_cross_section(1,10000,1), full_cross_section(1.5,10000,.8))
@@ -592,24 +601,24 @@ pander(summary(simdata2[,lm(lw ~ log(c) + log(h))]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
-<td align="center">1.524</td>
-<td align="center">0.001189</td>
-<td align="center">1282</td>
+<td align="center">2.232</td>
+<td align="center">0.002862</td>
+<td align="center">779.9</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
-<td align="center">0.7204</td>
-<td align="center">0.001819</td>
-<td align="center">396</td>
+<td align="center">0.592</td>
+<td align="center">0.004992</td>
+<td align="center">118.6</td>
 <td align="center">0</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">0.03279</td>
-<td align="center">0.002001</td>
-<td align="center">16.39</td>
-<td align="center">5.905e-60</td>
+<td align="center">-0.3135</td>
+<td align="center">0.004034</td>
+<td align="center">-77.71</td>
+<td align="center">0</td>
 </tr>
 </tbody>
 </table>
@@ -632,9 +641,9 @@ pander(summary(simdata2[,lm(lw ~ log(c) + log(h))]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center">20000</td>
-<td align="center">0.1066</td>
-<td align="center">0.9932</td>
-<td align="center">0.9932</td>
+<td align="center">0.2221</td>
+<td align="center">0.9703</td>
+<td align="center">0.9703</td>
 </tr>
 </tbody>
 </table>
@@ -646,7 +655,7 @@ for (iter in 1:N){
   simdataD[i==iter, lh := log(simdata3[i==iter &amp; t==1, h]) - log(simdata3[i==iter &amp; t==0, h])]
 }
 pander(summary(simdataD[,lm(lw ~ lc + lh)]))</code></pre>
-<pre class="r"><code>#trying to use the method suggested
+<pre class="r"><code>#using the method suggested
 simdata3 &lt;- simdata2[,t := rep(c(0,1),each = 10000)]
 quantX &lt;- quantile(simdata3$X, seq(0,1,.1))
 
@@ -667,8 +676,6 @@ for (iter in 1:10){
   D[q==iter, lh := h1[q==iter,2] - h0[q==iter,2]]
 }
 pander(summary(D[,lm(lw ~ lc + lh)]))</code></pre>
-<pre><code>## Warning in summary.lm(D[, lm(lw ~ lc + lh)]): essentially perfect fit:
-## summary may be unreliable</code></pre>
 <table style="width:86%;">
 <colgroup>
 <col width="25%" />
@@ -689,24 +696,24 @@ pander(summary(D[,lm(lw ~ lc + lh)]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center"><strong>lc</strong></td>
-<td align="center">1.5</td>
-<td align="center">3.97e-16</td>
-<td align="center">3.778e+15</td>
-<td align="center">2.403e-107</td>
+<td align="center">1.504</td>
+<td align="center">0.01228</td>
+<td align="center">122.5</td>
+<td align="center">6.368e-13</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>lh</strong></td>
-<td align="center">0.8</td>
-<td align="center">2.155e-16</td>
-<td align="center">3.713e+15</td>
-<td align="center">2.714e-107</td>
+<td align="center">0.7977</td>
+<td align="center">0.008524</td>
+<td align="center">93.59</td>
+<td align="center">4.19e-12</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">0.2231</td>
-<td align="center">8.468e-17</td>
-<td align="center">2.635e+15</td>
-<td align="center">2.993e-106</td>
+<td align="center">0.2236</td>
+<td align="center">0.002353</td>
+<td align="center">95</td>
+<td align="center">3.772e-12</td>
 </tr>
 </tbody>
 </table>
@@ -729,14 +736,14 @@ pander(summary(D[,lm(lw ~ lc + lh)]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center">10</td>
-<td align="center">2.111e-16</td>
-<td align="center">1</td>
-<td align="center">1</td>
+<td align="center">0.005704</td>
+<td align="center">0.9999</td>
+<td align="center">0.9999</td>
 </tr>
 </tbody>
 </table>
 <pre class="r"><code># using dummies
-pander(summary(simdata3[,lm(lw ~ log(c) + log(h) + t + q)]))</code></pre>
+pander(summary(simdata3[,lm(lw ~ log(c) + log(h) + factor(q) + t)]))</code></pre>
 <table style="width:86%;">
 <colgroup>
 <col width="25%" />
@@ -757,43 +764,106 @@ pander(summary(simdata3[,lm(lw ~ log(c) + log(h) + t + q)]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
-<td align="center">1.5</td>
-<td align="center">4.428e-17</td>
-<td align="center">3.388e+16</td>
+<td align="center">1.668</td>
+<td align="center">0.004457</td>
+<td align="center">374.3</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
-<td align="center">0.8</td>
-<td align="center">3.191e-17</td>
-<td align="center">2.507e+16</td>
+<td align="center">0.6895</td>
+<td align="center">0.003251</td>
+<td align="center">212.1</td>
 <td align="center">0</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>factor(q)1</strong></td>
+<td align="center">1.187</td>
+<td align="center">0.1322</td>
+<td align="center">8.982</td>
+<td align="center">2.899e-19</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>factor(q)2</strong></td>
+<td align="center">1.486</td>
+<td align="center">0.1322</td>
+<td align="center">11.24</td>
+<td align="center">3.336e-29</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>factor(q)3</strong></td>
+<td align="center">1.634</td>
+<td align="center">0.1323</td>
+<td align="center">12.35</td>
+<td align="center">6.338e-35</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>factor(q)4</strong></td>
+<td align="center">1.756</td>
+<td align="center">0.1323</td>
+<td align="center">13.27</td>
+<td align="center">5.341e-40</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>factor(q)5</strong></td>
+<td align="center">1.859</td>
+<td align="center">0.1324</td>
+<td align="center">14.04</td>
+<td align="center">1.35e-44</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>factor(q)6</strong></td>
+<td align="center">1.956</td>
+<td align="center">0.1324</td>
+<td align="center">14.77</td>
+<td align="center">3.945e-49</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>factor(q)7</strong></td>
+<td align="center">2.052</td>
+<td align="center">0.1325</td>
+<td align="center">15.49</td>
+<td align="center">7.916e-54</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>factor(q)8</strong></td>
+<td align="center">2.169</td>
+<td align="center">0.1325</td>
+<td align="center">16.37</td>
+<td align="center">8.307e-60</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>factor(q)9</strong></td>
+<td align="center">2.301</td>
+<td align="center">0.1326</td>
+<td align="center">17.35</td>
+<td align="center">6.345e-67</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>factor(q)10</strong></td>
+<td align="center">2.552</td>
+<td align="center">0.1328</td>
+<td align="center">19.21</td>
+<td align="center">1.531e-81</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>t</strong></td>
-<td align="center">0.2231</td>
-<td align="center">2.447e-17</td>
-<td align="center">9.121e+15</td>
+<td align="center">0.2066</td>
+<td align="center">0.001994</td>
+<td align="center">103.6</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>q</strong></td>
-<td align="center">7.099e-18</td>
-<td align="center">1.19e-17</td>
-<td align="center">0.5965</td>
-<td align="center">0.5508</td>
-</tr>
-<tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">1.809e-15</td>
-<td align="center">6.647e-17</td>
-<td align="center">27.21</td>
-<td align="center">3.876e-160</td>
+<td align="center">-2.031</td>
+<td align="center">0.1324</td>
+<td align="center">-15.34</td>
+<td align="center">7.714e-53</td>
 </tr>
 </tbody>
 </table>
 <table style="width:85%;">
-<caption>Fitting linear model: lw ~ log(c) + log(h) + t + q</caption>
+<caption>Fitting linear model: lw ~ log(c) + log(h) + factor(q) + t</caption>
 <colgroup>
 <col width="20%" />
 <col width="30%" />
@@ -811,14 +881,382 @@ pander(summary(simdata3[,lm(lw ~ log(c) + log(h) + t + q)]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center">20000</td>
-<td align="center">1.631e-15</td>
-<td align="center">1</td>
-<td align="center">1</td>
+<td align="center">0.132</td>
+<td align="center">0.9895</td>
+<td align="center">0.9895</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Q4:</strong> Add the participation decision to the data generating process. Show that the results are now biased.</p>
-<p><strong>Q5:</strong> Extend the model to add an excluded variable that affects participation through <span class="math inline">\(\mu\)</span> but not the wage (keep X everywhere). Devise a way improve the estimates by controling for participation.</p>
+<pre class="r"><code># using dummies
+pander(summary(simdata3[p1==TRUE,lm(lw ~ log(c) + log(h) + t + q + t:q)]))</code></pre>
+<table style="width:86%;">
+<colgroup>
+<col width="25%" />
+<col width="15%" />
+<col width="18%" />
+<col width="13%" />
+<col width="13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center"> </th>
+<th align="center">Estimate</th>
+<th align="center">Std. Error</th>
+<th align="center">t value</th>
+<th align="center">Pr(&gt;|t|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><strong>log(c)</strong></td>
+<td align="center">1.683</td>
+<td align="center">0.005135</td>
+<td align="center">327.7</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>log(h)</strong></td>
+<td align="center">0.4209</td>
+<td align="center">0.00592</td>
+<td align="center">71.09</td>
+<td align="center">0</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>t</strong></td>
+<td align="center">0.2301</td>
+<td align="center">0.00746</td>
+<td align="center">30.85</td>
+<td align="center">1.061e-202</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>q</strong></td>
+<td align="center">0.09479</td>
+<td align="center">0.0009095</td>
+<td align="center">104.2</td>
+<td align="center">0</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>t:q</strong></td>
+<td align="center">-0.003418</td>
+<td align="center">0.001055</td>
+<td align="center">-3.241</td>
+<td align="center">0.001195</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>(Intercept)</strong></td>
+<td align="center">-0.8289</td>
+<td align="center">0.004249</td>
+<td align="center">-195.1</td>
+<td align="center">0</td>
+</tr>
+</tbody>
+</table>
+<table style="width:85%;">
+<caption>Fitting linear model: lw ~ log(c) + log(h) + t + q + t:q</caption>
+<colgroup>
+<col width="20%" />
+<col width="30%" />
+<col width="11%" />
+<col width="22%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Observations</th>
+<th align="center">Residual Std. Error</th>
+<th align="center"><span class="math inline">\(R^2\)</span></th>
+<th align="center">Adjusted <span class="math inline">\(R^2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">15170</td>
+<td align="center">0.1194</td>
+<td align="center">0.9856</td>
+<td align="center">0.9856</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># without dummies
+pw0 &lt;- simdata3[p1==TRUE &amp; t==0,mean(lw),by=q]
+pw1 &lt;- simdata3[p1==TRUE &amp; t==1,mean(lw),by=q]
+pc0 &lt;- simdata3[p1==TRUE &amp; t==0,mean(log(c)),by=q]
+pc1 &lt;- simdata3[p1==TRUE &amp; t==1,mean(log(c)),by=q]
+ph0 &lt;- simdata3[p1==TRUE &amp; t==0,mean(log(h)),by=q]
+ph1 &lt;- simdata3[p1==TRUE &amp; t==1,mean(log(h)),by=q]
+pD &lt;- data.table(q=2:min(length(pw0[,q]),length(pw1 [,q])+1))
+for (iter in 2:10){
+  pD[q==iter, lw := pw1[q==iter,2] - pw0[q==iter,2]]
+  pD[q==iter, lc := pc1[q==iter,2] - pc0[q==iter,2]]
+  pD[q==iter, lh := ph1[q==iter,2] - ph0[q==iter,2]]
+}
+pander(summary(pD[,lm(lw ~ lc + lh)]))</code></pre>
+<table style="width:86%;">
+<colgroup>
+<col width="25%" />
+<col width="15%" />
+<col width="18%" />
+<col width="13%" />
+<col width="13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center"> </th>
+<th align="center">Estimate</th>
+<th align="center">Std. Error</th>
+<th align="center">t value</th>
+<th align="center">Pr(&gt;|t|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><strong>lc</strong></td>
+<td align="center">1.494</td>
+<td align="center">0.01165</td>
+<td align="center">128.2</td>
+<td align="center">1.517e-11</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>lh</strong></td>
+<td align="center">0.8437</td>
+<td align="center">0.05728</td>
+<td align="center">14.73</td>
+<td align="center">6.152e-06</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>(Intercept)</strong></td>
+<td align="center">0.2247</td>
+<td align="center">0.002067</td>
+<td align="center">108.7</td>
+<td align="center">4.083e-11</td>
+</tr>
+</tbody>
+</table>
+<table style="width:85%;">
+<caption>Fitting linear model: lw ~ lc + lh</caption>
+<colgroup>
+<col width="20%" />
+<col width="30%" />
+<col width="11%" />
+<col width="22%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Observations</th>
+<th align="center">Residual Std. Error</th>
+<th align="center"><span class="math inline">\(R^2\)</span></th>
+<th align="center">Adjusted <span class="math inline">\(R^2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">9</td>
+<td align="center">0.006153</td>
+<td align="center">0.9997</td>
+<td align="center">0.9997</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Q5:</strong> Extend the model to add an excluded variable that affects participation through <span class="math inline">\(\mu\)</span> but not the wage (keep X everywhere). Devise a way improve the estimates by controlling for participation.</p>
+<pre class="r"><code>full_cross_section_IV &lt;- function(lb, N, rho){ # draws new X in period 2.
+  #parameters
+  p  = list(eta=-1.5,gamma = 0.8,beta=1,beta0=0.1) # define preferences
+  
+  #simulating data
+  simdata = data.table(i=1:N,X=rnorm(N),Z=rnorm(N)) # add variable Z drawn from rnorm
+  simdata[,lw := lb*X + rnorm(N)*0.2];              # add a wage which depends on X and lb
+  simdata[,mu := exp(0.3*X + .4*Z + rnorm(N)*0.2)]; # add non-labor income that also depends on X and now Z
+  simdata[,betai := exp(0.5*X+rnorm(N)*0.1)]        # heterogenous betas
+  
+  #hours first guess
+  simdata[, h := pmax(-mu + p$beta0 ,0)/exp(lw)+1]
+  
+  #solve for choice of hours and consumption
+  for (i in 1:30) {
+    simdata[, h := ff.newt(h,rho*exp(lw),mu-p$beta0,p$eta,p$gamma,betai) ]
+  }
+
+  # attach consumption
+  simdata[, c  := rho*exp(lw)*h + mu - p$beta0];
+  simdata[, u1 := c^(1+p$eta)/(1+p$eta) - betai * h^(1+p$gamma)/(1+p$gamma) ];
+  simdata[, u0:=  mu^(1+p$eta)/(1+p$eta)];
+  simdata[,p1:=u1&gt;u0]
+}</code></pre>
+<p>To control for participation we want to calculate the probability of working based on the observed variables, and then include this as a regressor in the wage equation. We use the excluded variable that affects wealth but not wages as an instrument.</p>
+<p>In the current setup, we could simply include a LPM to calculate the probability of participation and then include the predicted values from this regression in the wage equation:</p>
+<p><span class="math display">\[
+  \Pr(u_1 &gt; u_0) = \alpha + \beta_1 X + \beta_2 Z + \varepsilon
+\]</span></p>
+<pre class="r"><code>simdata2 &lt;- rbind(full_cross_section_IV(1,10000,1), full_cross_section_IV(1.5,10000,.8))
+
+simdata3 &lt;- simdata2[,t := rep(c(0,1),each = 10000)]
+quantX &lt;- quantile(simdata3$X, seq(0,1,.1))
+
+invisible(simdata3[, q:= 0])
+for (iter in 1:10){
+  simdata3[X &gt; quantX[iter], q := iter]
+}
+w0 &lt;- simdata3[t==0,mean(lw),by=q]
+w1 &lt;- simdata3[t==1,mean(lw),by=q]
+c0 &lt;- simdata3[t==0,mean(log(c)),by=q]
+c1 &lt;- simdata3[t==1,mean(log(c)),by=q]
+h0 &lt;- simdata3[t==0,mean(log(h)),by=q]
+h1 &lt;- simdata3[t==1,mean(log(h)),by=q]
+D &lt;- data.table(q=1:min(length(w0[,q]),length(w1[,q])))
+for (iter in 1:10){
+  D[q==iter, lw := w1[q==iter,2] - w0[q==iter,2]]
+  D[q==iter, lc := c1[q==iter,2] - c0[q==iter,2]]
+  D[q==iter, lh := h1[q==iter,2] - h0[q==iter,2]]
+}
+pander(summary(D[,lm(lw ~ lc + lh)]))</code></pre>
+<table style="width:86%;">
+<colgroup>
+<col width="25%" />
+<col width="15%" />
+<col width="18%" />
+<col width="13%" />
+<col width="13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center"> </th>
+<th align="center">Estimate</th>
+<th align="center">Std. Error</th>
+<th align="center">t value</th>
+<th align="center">Pr(&gt;|t|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><strong>lc</strong></td>
+<td align="center">1.504</td>
+<td align="center">0.008476</td>
+<td align="center">177.5</td>
+<td align="center">4.763e-14</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>lh</strong></td>
+<td align="center">0.7805</td>
+<td align="center">0.005811</td>
+<td align="center">134.3</td>
+<td align="center">3.346e-13</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>(Intercept)</strong></td>
+<td align="center">0.2234</td>
+<td align="center">0.001517</td>
+<td align="center">147.3</td>
+<td align="center">1.756e-13</td>
+</tr>
+</tbody>
+</table>
+<table style="width:85%;">
+<caption>Fitting linear model: lw ~ lc + lh</caption>
+<colgroup>
+<col width="20%" />
+<col width="30%" />
+<col width="11%" />
+<col width="22%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Observations</th>
+<th align="center">Residual Std. Error</th>
+<th align="center"><span class="math inline">\(R^2\)</span></th>
+<th align="center">Adjusted <span class="math inline">\(R^2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">10</td>
+<td align="center">0.003748</td>
+<td align="center">1</td>
+<td align="center">0.9999</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># using dummies
+pander(summary(simdata3[,lm(lw ~ log(c) + log(h) + q + t)]))</code></pre>
+<table style="width:86%;">
+<colgroup>
+<col width="25%" />
+<col width="15%" />
+<col width="18%" />
+<col width="13%" />
+<col width="13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center"> </th>
+<th align="center">Estimate</th>
+<th align="center">Std. Error</th>
+<th align="center">t value</th>
+<th align="center">Pr(&gt;|t|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><strong>log(c)</strong></td>
+<td align="center">1.676</td>
+<td align="center">0.004394</td>
+<td align="center">381.5</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>log(h)</strong></td>
+<td align="center">0.8203</td>
+<td align="center">0.00278</td>
+<td align="center">295.1</td>
+<td align="center">0</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>q</strong></td>
+<td align="center">0.136</td>
+<td align="center">0.0008598</td>
+<td align="center">158.2</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>t</strong></td>
+<td align="center">0.2377</td>
+<td align="center">0.002293</td>
+<td align="center">103.6</td>
+<td align="center">0</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>(Intercept)</strong></td>
+<td align="center">-0.8075</td>
+<td align="center">0.004726</td>
+<td align="center">-170.9</td>
+<td align="center">0</td>
+</tr>
+</tbody>
+</table>
+<table style="width:85%;">
+<caption>Fitting linear model: lw ~ log(c) + log(h) + q + t</caption>
+<colgroup>
+<col width="20%" />
+<col width="30%" />
+<col width="11%" />
+<col width="22%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Observations</th>
+<th align="center">Residual Std. Error</th>
+<th align="center"><span class="math inline">\(R^2\)</span></th>
+<th align="center">Adjusted <span class="math inline">\(R^2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">20000</td>
+<td align="center">0.1544</td>
+<td align="center">0.9857</td>
+<td align="center">0.9857</td>
+</tr>
+</tbody>
+</table>
 </div>
 
 <!--<a href="https://github.com/you"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/652c5b9acfaddf3a9c326fa6bde407b87f7be0f4/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6f72616e67655f6666373630302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png"></a> -->

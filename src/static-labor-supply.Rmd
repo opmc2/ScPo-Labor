@@ -145,19 +145,22 @@ full_cross_section2 <- function(lb, N, rho, X){ #function to keep track of indiv
   simdata = data.table(i=1:N,X)
   simdata[,lw := lb*X + rnorm(N)*0.2];      # add a wage which depends on X and lb
   simdata[,mu := exp(0.3*X + rnorm(N)*0.2)]; # add non-labor income that also depends on X
+  simdata[,betai := exp(0.5*X+rnorm(N)*0.1)]
   
-  # we then solve for the choice of hours and consumption
-  simdata[, h := pmax(-mu + p$beta0 ,0)/(rho*exp(lw))+1] # starting value
-  # for loop for newton method (30 should be enough, it is fast)
+  #hours first guess
+  simdata[, h := pmax(-mu + p$beta0 ,0)/exp(lw)+1]
+  
+  #solve for choice of hours and consumption
   for (i in 1:30) {
-      simdata[, h := ff.newt(h,rho*exp(lw),mu-p$beta0,p$eta,p$gamma,p$beta) ]
-    }
+    simdata[, h := ff.newt(h,rho*exp(lw),mu-tx$r-p$beta0,p$eta,p$gamma,betai) ]
+  }
 
-  # attach consumption, value of working (and participation var for later)
+  # attach consumption
   simdata[, c  := rho*exp(lw)*h + mu - p$beta0];
-  simdata[, u1 := c^(1+p$eta)/(1+p$eta) - p$beta * h^(1+p$gamma)/(1+p$gamma) ];
-  simdata[,u0:=  mu^(1+p$eta)/(1+p$eta)];
+  simdata[, u1 := c^(1+p$eta)/(1+p$eta) - betai * h^(1+p$gamma)/(1+p$gamma) ];
+  simdata[, u0:=  mu^(1+p$eta)/(1+p$eta)];
   simdata[,p1:=u1>u0]
+
 }
 
 full_cross_section <- function(lb, N, rho){ # draws new X in period 2.
@@ -168,19 +171,21 @@ full_cross_section <- function(lb, N, rho){ # draws new X in period 2.
   simdata = data.table(i=1:N,X=rnorm(N))
   simdata[,lw := lb*X + rnorm(N)*0.2];      # add a wage which depends on X and lb
   simdata[,mu := exp(0.3*X + rnorm(N)*0.2)]; # add non-labor income that also depends on X
+  simdata[,betai := exp(0.5*X+rnorm(N)*0.1)]
   
-  # we then solve for the choice of hours and consumption
-  simdata[, h := pmax(-mu + p$beta0 ,0)/(rho*exp(lw))+1] # starting value
-  # for loop for newton method (30 should be enough, it is fast)
+  #hours first guess
+  simdata[, h := pmax(-mu + p$beta0 ,0)/exp(lw)+1]
+  
+  #solve for choice of hours and consumption
   for (i in 1:30) {
-      simdata[, h := ff.newt(h,rho*exp(lw),mu-p$beta0,p$eta,p$gamma,p$beta) ]
-    }
+    simdata[, h := ff.newt(h,rho*exp(lw),mu-p$beta0,p$eta,p$gamma,betai) ]
+  }
 
-  # attach consumption, value of working (and var for participation later)
+  # attach consumption
   simdata[, c  := rho*exp(lw)*h + mu - p$beta0];
-  simdata[, u1 := c^(1+p$eta)/(1+p$eta) - p$beta * h^(1+p$gamma)/(1+p$gamma) ];
+  simdata[, u1 := c^(1+p$eta)/(1+p$eta) - betai * h^(1+p$gamma)/(1+p$gamma) ];
   simdata[, u0:=  mu^(1+p$eta)/(1+p$eta)];
-  simdata[, p1:=u1>u0]
+  simdata[,p1:=u1>u0]
 }
 ```
 
@@ -227,7 +232,7 @@ for (iter in 1:10){
 pander(summary(D[,lm(lw ~ lc + lh)]))
 
 # using dummies
-pander(summary(simdata3[,lm(lw ~ log(c) + log(h) + t + q)]))
+pander(summary(simdata3[,lm(lw ~ log(c) + log(h) + factor(q) + t)]))
 ```
 
 
@@ -235,7 +240,7 @@ pander(summary(simdata3[,lm(lw ~ log(c) + log(h) + t + q)]))
  
 ```{r include participation decision}
 # using dummies
-pander(summary(simdata3[p1==TRUE,lm(lw ~ log(c) + log(h) + t + q)]))
+pander(summary(simdata3[p1==TRUE,lm(lw ~ log(c) + log(h) + t + q + t:q)]))
 
 # without dummies
 pw0 <- simdata3[p1==TRUE & t==0,mean(lw),by=q]
@@ -253,7 +258,86 @@ for (iter in 2:10){
 pander(summary(pD[,lm(lw ~ lc + lh)]))
 ```
  
- **Q5:** Extend the model to add an excluded variable that affects participation through $\mu$ but not the wage (keep X everywhere). Devise a way improve the estimates by controling for participation.
+ **Q5:** Extend the model to add an excluded variable that affects participation through $\mu$ but not the wage (keep X everywhere). Devise a way improve the estimates by controlling for participation.
  
+```{r cross-section with IV}
+full_cross_section_IV <- function(lb, N, rho){ # draws new X in period 2.
+  #parameters
+  p  = list(eta=-1.5,gamma = 0.8,beta=1,beta0=0.1) # define preferences
+  
+  #simulating data
+  simdata = data.table(i=1:N,X=rnorm(N),Z=rnorm(N)) # add variable Z drawn from rnorm
+  simdata[,lw := lb*X + rnorm(N)*0.2];              # add a wage which depends on X and lb
+  simdata[,mu := exp(0.3*X + .4*Z + rnorm(N)*0.2)]; # add non-labor income that also depends on X and now Z
+  simdata[,betai := exp(0.5*X+rnorm(N)*0.1)]        # heterogenous betas
+  
+  #hours first guess
+  simdata[, h := pmax(-mu + p$beta0 ,0)/exp(lw)+1]
+  
+  #solve for choice of hours and consumption
+  for (i in 1:30) {
+    simdata[, h := ff.newt(h,rho*exp(lw),mu-p$beta0,p$eta,p$gamma,betai) ]
+  }
 
+  # attach consumption
+  simdata[, c  := rho*exp(lw)*h + mu - p$beta0];
+  simdata[, u1 := c^(1+p$eta)/(1+p$eta) - betai * h^(1+p$gamma)/(1+p$gamma) ];
+  simdata[, u0:=  mu^(1+p$eta)/(1+p$eta)];
+  simdata[,p1:=u1>u0]
+}
+```
+
+To control for participation we want to calculate the probability of working based on the observed variables, and then include this as a regressor in the wage equation. We use the excluded variable that affects wealth but not wages as an instrument.
+
+In the current setup, we could simply include a LPM to calculate the probability of participation and then include the predicted values from this regression in the wage equation:
+
+$$
+  \Pr(u_1 > u_0) = \alpha + \beta_1 X + \beta_2 Z + \varepsilon
+$$
+
+
+```{r control for participation}
+
+simdata2 <- rbind(full_cross_section_IV(1,10000,1), full_cross_section_IV(1.5,10000,.8))
+
+simdata3 <- simdata2[,t := rep(c(0,1),each = 10000)]
+quantX <- quantile(simdata3$X, seq(0,1,.1))
+
+invisible(simdata3[, q:= 0])
+for (iter in 1:10){
+  simdata3[X > quantX[iter], q := iter]
+}
+
+attach(simdata3)
+select_model <- lm(p1 ~ X + Z + log(c) + log (h))
+detach(simdata3)
+
+invisible(simdata3[, preds := predict(select_model)])
+
+w0 <- simdata3[p1 == TRUE & t==0,mean(lw),by=q]
+w1 <- simdata3[p1 == TRUE & t==1,mean(lw),by=q]
+c0 <- simdata3[p1 == TRUE & t==0,mean(log(c)),by=q]
+c1 <- simdata3[p1 == TRUE & t==1,mean(log(c)),by=q]
+h0 <- simdata3[p1 == TRUE & t==0,mean(log(h)),by=q]
+h1 <- simdata3[p1 == TRUE & t==1,mean(log(h)),by=q]
+r0 <- simdata3[p1 == TRUE & t==0,mean(preds), by=q]
+r1 <- simdata3[p1 == TRUE & t==1,mean(preds), by=q]
+X0 <- simdata3[p1 == TRUE & t==0,mean(X), by=q]
+X1 <- simdata3[p1 == TRUE & t==1,mean(X), by=q]
+Y0 <- simdata3[p1 == TRUE & t==0,mean(Z), by=q]
+Y1 <- simdata3[p1 == TRUE & t==1,mean(Z), by=q]
+D <- data.table(q=1:min(length(w0[,q]),length(w1[,q])))
+for (iter in 1:10){
+  D[q==iter, lw := w1[q==iter,2] - w0[q==iter,2]]
+  D[q==iter, lc := c1[q==iter,2] - c0[q==iter,2]]
+  D[q==iter, lh := h1[q==iter,2] - h0[q==iter,2]]
+  D[q==iter, r := r1[q==iter,2] - r0[q==iter,2]]
+  D[q==iter, x := X1[q==iter,2] - X0[q==iter,2]]
+  D[q==iter, y := Y1[q==iter,2] - Y0[q==iter,2]]
+}
+
+
+
+pander(summary(D[,lm(lw ~ lc + lh + r + x + y)]))
+```
 
