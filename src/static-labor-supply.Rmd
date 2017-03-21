@@ -123,6 +123,7 @@ pander(sfit)
 # Short Panel version 
 
  **Q1:** Take the simulated data from the model with heterogenous $\beta_i$. First explain why regressing $\log(w)$ on $\log(c)$, $\log(h)$, and $X$ does not deliver correct estimates.
+ 
  **Q2:** Simulate 2 periods of the model (a short panel), keep everything fixed over the 2 periods, but redraw the wage. Estimate the model in differences and recover the parameters using $\log(w)$ on $\log(c)$, $\log(h)$. How does including or not including participation decision affect the results? Explain.
  
 # Repeated cross-section version
@@ -136,7 +137,7 @@ In this section we want to get closer to the Blundell, Duncan and Meghir (1998) 
 Write a function that can simulate a full cross section and that takes `lb` as an input as well as marginal tax rate $\rho$. It should apply the same function as before to solve for the interior solution, but use the after-tax wage everywhere.
 
 ```{r function to simulate cross section}
-full_cross_section <- function(lb, N, rho, X){
+full_cross_section2 <- function(lb, N, rho, X){ #function to keep track of individuals - same X
   #parameters
   p  = list(eta=-1.5,gamma = 0.8,beta=1,beta0=0.1) # define preferences
   
@@ -152,19 +153,45 @@ full_cross_section <- function(lb, N, rho, X){
       simdata[, h := ff.newt(h,rho*exp(lw),mu-p$beta0,p$eta,p$gamma,p$beta) ]
     }
 
-  # attach consumption, value of working
+  # attach consumption, value of working (and participation var for later)
   simdata[, c  := rho*exp(lw)*h + mu - p$beta0];
   simdata[, u1 := c^(1+p$eta)/(1+p$eta) - p$beta * h^(1+p$gamma)/(1+p$gamma) ];
+  simdata[,u0:=  mu^(1+p$eta)/(1+p$eta)];
+  simdata[,p1:=u1>u0]
+}
+
+full_cross_section <- function(lb, N, rho){ # draws new X in period 2.
+  #parameters
+  p  = list(eta=-1.5,gamma = 0.8,beta=1,beta0=0.1) # define preferences
+  
+  #simulating data
+  simdata = data.table(i=1:N,X=rnorm(N))
+  simdata[,lw := lb*X + rnorm(N)*0.2];      # add a wage which depends on X and lb
+  simdata[,mu := exp(0.3*X + rnorm(N)*0.2)]; # add non-labor income that also depends on X
+  
+  # we then solve for the choice of hours and consumption
+  simdata[, h := pmax(-mu + p$beta0 ,0)/(rho*exp(lw))+1] # starting value
+  # for loop for newton method (30 should be enough, it is fast)
+  for (i in 1:30) {
+      simdata[, h := ff.newt(h,rho*exp(lw),mu-p$beta0,p$eta,p$gamma,p$beta) ]
+    }
+
+  # attach consumption, value of working (and var for participation later)
+  simdata[, c  := rho*exp(lw)*h + mu - p$beta0];
+  simdata[, u1 := c^(1+p$eta)/(1+p$eta) - p$beta * h^(1+p$gamma)/(1+p$gamma) ];
+  simdata[, u0:=  mu^(1+p$eta)/(1+p$eta)];
+  simdata[, p1:=u1>u0]
 }
 ```
 
  **Q3:** simulate two cross-sections with $(lb=1,\rho=1)$ and $(lb=1.5,\rho=0.8)$ and use 10k indivduals. Simulate data without participation decision for now. Combine the data and show that previous regression provides biased estimates. Then slice X into K categories (for example using quantiles). Then compute $\log(w)$, $\log(c)$ and $\log(h)$ within each group and time period. Run the regression in first differences and show that this recovers the structural parameters.
  
 ```{r simulate data and run regression}
-simdata2 <- rbind(full_cross_section(1,10000,1,rnorm(10000)), full_cross_section(1.5,10000,.8,rnorm(10000)))
+simdata2 <- rbind(full_cross_section(1,10000,1), full_cross_section(1.5,10000,.8))
+#simdata2 <- rbind(full_cross_section2(1,10000,1,rnorm(10000)), full_cross_section2(1.5,10000,.8,rnorm(10000)))
 pander(summary(simdata2[,lm(lw ~ log(c) + log(h))]))
 ```
-```{r}
+```{version with same individuals}
 simdata3 <- simdata2[,t := rep(c(0,1),each = 10000)]
 simdataD <- data.table(i=seq(1:N))
 for (iter in 1:N){
@@ -177,9 +204,54 @@ pander(summary(simdataD[,lm(lw ~ lc + lh)]))
 
 
 ```{r}
-quantX <- quantile(simdata3$X, )
+#using the method suggested
+simdata3 <- simdata2[,t := rep(c(0,1),each = 10000)]
+quantX <- quantile(simdata3$X, seq(0,1,.1))
+
+invisible(simdata3[, q:= 0])
+for (iter in 1:10){
+  simdata3[X > quantX[iter], q := iter]
+}
+w0 <- simdata3[t==0,mean(lw),by=q]
+w1 <- simdata3[t==1,mean(lw),by=q]
+c0 <- simdata3[t==0,mean(log(c)),by=q]
+c1 <- simdata3[t==1,mean(log(c)),by=q]
+h0 <- simdata3[t==0,mean(log(h)),by=q]
+h1 <- simdata3[t==1,mean(log(h)),by=q]
+D <- data.table(q=1:min(length(w0[,q]),length(w1[,q])))
+for (iter in 1:10){
+  D[q==iter, lw := w1[q==iter,2] - w0[q==iter,2]]
+  D[q==iter, lc := c1[q==iter,2] - c0[q==iter,2]]
+  D[q==iter, lh := h1[q==iter,2] - h0[q==iter,2]]
+}
+pander(summary(D[,lm(lw ~ lc + lh)]))
+
+# using dummies
+pander(summary(simdata3[,lm(lw ~ log(c) + log(h) + t + q)]))
+```
+
 
  **Q4:** Add the participation decision to the data generating process. Show that the results are now biased.
+ 
+```{r include participation decision}
+# using dummies
+pander(summary(simdata3[p1==TRUE,lm(lw ~ log(c) + log(h) + t + q)]))
+
+# without dummies
+pw0 <- simdata3[p1==TRUE & t==0,mean(lw),by=q]
+pw1 <- simdata3[p1==TRUE & t==1,mean(lw),by=q]
+pc0 <- simdata3[p1==TRUE & t==0,mean(log(c)),by=q]
+pc1 <- simdata3[p1==TRUE & t==1,mean(log(c)),by=q]
+ph0 <- simdata3[p1==TRUE & t==0,mean(log(h)),by=q]
+ph1 <- simdata3[p1==TRUE & t==1,mean(log(h)),by=q]
+pD <- data.table(q=2:min(length(pw0[,q]),length(pw1 [,q])+1))
+for (iter in 2:10){
+  pD[q==iter, lw := pw1[q==iter,2] - pw0[q==iter,2]]
+  pD[q==iter, lc := pc1[q==iter,2] - pc0[q==iter,2]]
+  pD[q==iter, lh := ph1[q==iter,2] - ph0[q==iter,2]]
+}
+pander(summary(pD[,lm(lw ~ lc + lh)]))
+```
  
  **Q5:** Extend the model to add an excluded variable that affects participation through $\mu$ but not the wage (keep X everywhere). Devise a way improve the estimates by controling for participation.
  
