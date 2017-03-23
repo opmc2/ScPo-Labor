@@ -10,6 +10,7 @@ require(pander)
 require(data.table)
 require(ggplot2)
 require(dplyr)
+require(sampleSelection)
 ```
 
 You can find the source code for this file in the class repository. The direct link is [here](https://raw.githubusercontent.com/tlamadon/econ-34430/master/src/static-labor-supply.Rmd)
@@ -28,7 +29,9 @@ We note already that the non-labor income can control for dynamic labor supply s
 
 The first order conditions give us $w(wh +r - \mu)^\eta = \beta h^\gamma$. There is no closed-form but we can very quickly find an interior solution by using Newton maximization on the function $f(x) = w(wh +r - \mu)^\eta - \beta h^\gamma$. We iterate on 
 
-$$x \leftarrow x - f(x)/f'x)$$.
+$$
+x \leftarrow x - f(x)/f'x)
+$$.
 
 ```{r}
 # function which updates choice of hours using Newton step
@@ -71,6 +74,7 @@ At this point we can regress $\log(w)$ on $\log(c)$ and $\log(h)$ and find preci
 
 ```{r}
 pander(summary(simdata[,lm(lw ~ log(c) + log(h))]))
+#pander(summary(simdata[,lm(log(h) ~ log(c) + log(c - h*exp(lw)))]))
 ```
 
 ## Adding participation
@@ -163,12 +167,12 @@ full_cross_section2 <- function(lb, N, rho, X){ #function to keep track of indiv
 
 }
 
-full_cross_section <- function(lb, N, rho){ # draws new X in period 2.
+full_cross_section <- function(lb, N, rho, t){ # draws new X in period 2.
   #parameters
   p  = list(eta=-1.5,gamma = 0.8,beta=1,beta0=0.1) # define preferences
   
   #simulating data
-  simdata = data.table(i=1:N,X=rnorm(N))
+  simdata = data.table(i=1:N,X=rnorm(N), t)
   simdata[,lw := lb*X + rnorm(N)*0.2];      # add a wage which depends on X and lb
   simdata[,mu := exp(0.3*X + rnorm(N)*0.2)]; # add non-labor income that also depends on X
   simdata[,betai := exp(0.5*X+rnorm(N)*0.1)]
@@ -189,12 +193,14 @@ full_cross_section <- function(lb, N, rho){ # draws new X in period 2.
 }
 ```
 
- **Q3:** simulate two cross-sections with $(lb=1,\rho=1)$ and $(lb=1.5,\rho=0.8)$ and use 10k indivduals. Simulate data without participation decision for now. Combine the data and show that previous regression provides biased estimates. Then slice X into K categories (for example using quantiles). Then compute $\log(w)$, $\log(c)$ and $\log(h)$ within each group and time period. Run the regression in first differences and show that this recovers the structural parameters.
+ **Q3:** simulate two cross-sections with $(lb=1,\rho=1)$ and $(lb=1.5,\rho=0.8)$ and use 10k indivduals. Simulate data without the participation decision for now. Combine the data and show that previous regression provides biased estimates. Then slice X into K categories (for example using quantiles). Then compute $\log(w)$, $\log(c)$ and $\log(h)$ within each group and time period. Run the regression in first differences and show that this recovers the structural parameters.
+ 
+The combined data (from two cross-sections with different tax rates) produces biased estimates, $\hat{\eta}$ and $\hat{\gamma}$. We have a similar problem to in Questions 1 and 2; we cannot separate out the individual effects through $\beta_i$ and the effects we want to identify i.e. $\eta$ and $\gamma$.
  
 ```{r simulate data and run regression}
-simdata2 <- rbind(full_cross_section(1,10000,1), full_cross_section(1.5,10000,.8))
+simdata3 <- rbind(full_cross_section(1,10000,1,0), full_cross_section(1.5,10000,.8,1))
 #simdata2 <- rbind(full_cross_section2(1,10000,1,rnorm(10000)), full_cross_section2(1.5,10000,.8,rnorm(10000)))
-pander(summary(simdata2[,lm(lw ~ log(c) + log(h))]))
+pander(summary(simdata3[,lm(lw ~ log(c) + log(h))]))
 ```
 ```{version with same individuals}
 simdata3 <- simdata2[,t := rep(c(0,1),each = 10000)]
@@ -208,9 +214,8 @@ pander(summary(simdataD[,lm(lw ~ lc + lh)]))
 ```
 
 
-```{r}
+```{r, echo=FALSE}
 #using the method suggested
-simdata3 <- simdata2[,t := rep(c(0,1),each = 10000)]
 quantX <- quantile(simdata3$X, seq(0,1,.1))
 
 invisible(simdata3[, q:= 0])
@@ -230,9 +235,22 @@ for (iter in 1:10){
   D[q==iter, lh := h1[q==iter,2] - h0[q==iter,2]]
 }
 pander(summary(D[,lm(lw ~ lc + lh)]))
+```
 
-# using dummies
-pander(summary(simdata3[,lm(lw ~ log(c) + log(h) + factor(q) + t)]))
+Following [@BDM1998] we can use an alternative (equivalent) approach to the above group estimation.
+
+```{r}
+# alternative (equivalent) approach, using dummies (see BDM (1998))
+simdata4 <- simdata3[t==0, lw_at := lw]
+simdata4 <- simdata4[t==1, lw_at := log(.8*exp(lw))]
+
+quantX <- quantile(simdata4$X, seq(0,1,.1))
+invisible(simdata4[, q:= 0])
+for (iter in 1:10){
+  simdata4[X > quantX[iter], q := iter]
+}
+model1 <- simdata4[,lm(lw_at ~ t*q)]
+
 ```
 
 
@@ -296,48 +314,62 @@ $$
 $$
 
 
-```{r control for participation}
-
-simdata2 <- rbind(full_cross_section_IV(1,10000,1), full_cross_section_IV(1.5,10000,.8))
+```{r control for participation, results="hide"}
+rho0=1
+rho1=.8
+simdata2 <- rbind(full_cross_section_IV(1,10000,rho0), full_cross_section_IV(1.5,10000,rho1))
 
 simdata3 <- simdata2[,t := rep(c(0,1),each = 10000)]
-quantX <- quantile(simdata3$X, seq(0,1,.1))
 
-invisible(simdata3[, q:= 0])
-for (iter in 1:10){
-  simdata3[X > quantX[iter], q := iter]
+
+#rho
+simdata3[, rho:=0]
+simdata3[t==0,rho:=rho0]
+simdata3[t==1,rho:=rho1]
+
+#relevant groupings
+#because post-tax wage moves differentially by x
+quantX <- quantile(simdata3$X, seq(0,1,.25))
+for (iter in 1:4){
+  simdata3[X >= quantX[iter], q := iter]
 }
 
-attach(simdata3)
-select_model <- lm(p1 ~ X + Z + log(c) + log (h))
-detach(simdata3)
+#because mu changes differentially by z (not used)
+quantz <- quantile(simdata3$Z, seq(0,1,.25))
+for (iter in 1:4){
+  simdata3[Z >= quantz[iter], z := iter]
+}
 
-invisible(simdata3[, preds := predict(select_model)])
-
-w0 <- simdata3[p1 == TRUE & t==0,mean(lw),by=q]
-w1 <- simdata3[p1 == TRUE & t==1,mean(lw),by=q]
-c0 <- simdata3[p1 == TRUE & t==0,mean(log(c)),by=q]
-c1 <- simdata3[p1 == TRUE & t==1,mean(log(c)),by=q]
-h0 <- simdata3[p1 == TRUE & t==0,mean(log(h)),by=q]
-h1 <- simdata3[p1 == TRUE & t==1,mean(log(h)),by=q]
-r0 <- simdata3[p1 == TRUE & t==0,mean(preds), by=q]
-r1 <- simdata3[p1 == TRUE & t==1,mean(preds), by=q]
-X0 <- simdata3[p1 == TRUE & t==0,mean(X), by=q]
-X1 <- simdata3[p1 == TRUE & t==1,mean(X), by=q]
-Y0 <- simdata3[p1 == TRUE & t==0,mean(Z), by=q]
-Y1 <- simdata3[p1 == TRUE & t==1,mean(Z), by=q]
-D <- data.table(q=1:min(length(w0[,q]),length(w1[,q])))
-for (iter in 1:10){
-  D[q==iter, lw := w1[q==iter,2] - w0[q==iter,2]]
-  D[q==iter, lc := c1[q==iter,2] - c0[q==iter,2]]
-  D[q==iter, lh := h1[q==iter,2] - h0[q==iter,2]]
-  D[q==iter, r := r1[q==iter,2] - r0[q==iter,2]]
-  D[q==iter, x := X1[q==iter,2] - X0[q==iter,2]]
-  D[q==iter, y := Y1[q==iter,2] - Y0[q==iter,2]]
+#gives better results than z
+quantmu <- quantile(simdata3$mu, seq(0,1,.25))
+for (iter in 1:4){
+  simdata3[mu >= quantmu[iter], m := iter]
 }
 
 
+# Proportion of workers in group at time (groups defined by x and m, 100 in total)
+invisible(simdata3[, propw:=0])
+for (iter in 1:4){
+  simdata3[q==iter & t==0, propw := mean(p1)]
+  simdata3[q==iter & t==1, propw := mean(p1)]
+}
 
-pander(summary(D[,lm(lw ~ lc + lh + r + x + y)]))
+#inverse mill ratio by group by time
+invisible(simdata3[,iMr := dnorm(propw)/pnorm(propw)])
+
+# correct wage (not used)
+#simdata3[,H := ifelse(p1==1, h, 0 )]
+#simdata3[,LW:= ifelse(p1==1,lw, 0 )]
+
+#post tax wage rate
+lptw <- simdata3[p1 == TRUE, log(rho*exp(lw))]
+########## Regressions ##################################
+#First stage- get residuals from post-tax wage on group and time dummies
+stageone = simdata3[p1==TRUE,lm(lptw~factor(q)*factor(t))]
+summary(stageone)
+
+#set residuals ==0 for non workers
+simdata3[,res:=0] 
+simdata3[p1==TRUE,res:=residuals(stageone)]
 ```
 
