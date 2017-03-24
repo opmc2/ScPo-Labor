@@ -126,10 +126,117 @@ pander(sfit)
 
 # Short Panel version 
 
+ # Short Panel version 
+
  **Q1:** Take the simulated data from the model with heterogenous $\beta_i$. First explain why regressing $\log(w)$ on $\log(c)$, $\log(h)$, and $X$ does not deliver correct estimates.
+ 
+ **Answer:** 
+ 
+By introducing heterogeneity in $\beta_i$, we create a variation in $h$ that depends on the individual. Without stripping $h$ of the effect of $\beta_i$, we effectively run a pooled OLS regression. We can see the effect of the heterogeneity on in the following plot. ($f0/f1$ increases in $\beta_i$, leading to a downward effect on $h^*$):
+ 
+```{r}
+plot(simdata$betai ,simdata$h)
+```
+
+The pooled OLS returns a biased estimate. The bias should be smaller within restricted ranges, or clusters, of $\beta_i$:
+
+```{r, ,results="hide"}
+lbeta=summary(simdata[(p1==TRUE) & (betai<quantile(betai , 0.25 )),lm(lw ~ log(c) + log(h))])
+mbeta=summary(simdata[(p1==TRUE) & (betai>quantile(betai , 0.25 )) & (betai<quantile(betai , 0.75 )),lm(lw ~ log(c) + log(h))])
+hbeta=summary(simdata[(p1==TRUE) & (betai>quantile(betai, .75)),lm(lw ~ log(c) + log(h))])
+```
+```{r, ,results="asis"}
+#for example:
+pander(lbeta)
+pander(hbeta)
+```
+
+Indeed, the bias decreases in this clustered regression. Furthermore, the bias is lowest for the smallest values of $\beta_i$. In effect, by not controlling for $\beta_i$, we get the effect on the average $\beta_i$. To see this:
+
+```{r, ,results='asis'}
+# compare with pander(sfit) above
+pander(summary(simdata[(p1==TRUE) & (betai=mean(betai)),lm(lw ~ log(c) + log(h))]))
+```
+
  
  **Q2:** Simulate 2 periods of the model (a short panel), keep everything fixed over the 2 periods, but redraw the wage. Estimate the model in differences and recover the parameters using $\log(w)$ on $\log(c)$, $\log(h)$. How does including or not including participation decision affect the results? Explain.
  
+**Answer**
+```{r, ,results="hide"}
+#re-do simulation with second period
+N= 1000
+T=2
+simdata= data.table(i=rep((1:N),T), X = rnorm(N))
+simdata[, t   := kronecker(c(1:T), rep(1,N))];
+simdata[,lw   := X          + rnorm(2*N)*0.2]; #2*N So each period gets its own
+simdata[,mu   :=   exp(0.3*X + rnorm(N)*0.2)];
+simdata[, h   := pmax(-mu+tx$r + p$beta0 ,0)/exp(lw)+1]
+simdata[,betai:=     exp(0.5*X+rnorm(N)*0.1)]
+
+#maximization
+for (i in 1:30) {
+  simdata[, h := ff.newt(h,tx$rho*exp(lw),mu-tx$r-p$beta0,p$eta,p$gamma,betai) ]
+}
+
+#backing out consumption, utilities, participation decision
+simdata[, c  := exp(lw)*h + mu - p$beta0];
+simdata[, u1 := c^(1+p$eta)/(1+p$eta) - betai * h^(1+p$gamma)/(1+p$gamma) ];
+simdata[, u0 :=  mu^(1+p$eta)/(1+p$eta)];
+simdata[,p1  :=u1>u0]
+
+#differences 
+#new data table as each individual has only one entry (difference so no periods)
+diffs= data.table(i=1:N)
+for (j in 1:N) {
+diffs$dlc[j]= simdata[(t==2) & (i==j), log(c)]-simdata[(t==1) & (i==j),log(c)]
+diffs$dlh[j]= simdata[(t==2) & (i==j), log(h)]-simdata[(t==1) & (i==j),log(h)]
+diffs$dlw[j]= simdata[(t==2) & (i==j), lw]-simdata[(t==1) & (i==j),lw]
+}
+
+```
+
+```{r, ,results='asis'}
+# Regressions
+pander(summary(diffs[,lm(dlw ~ dlc + dlh)]))
+#pander(summary(diffs[p1==TRUE ,lm(dlw ~ dlc + dlh)]))
+#pander(summary(diffs[p1==FALSE,lm(dlw ~ dlc + dlh)]))
+```
+Unlike the previous results, these regressions are correct. By taking the difference, we cancel out any time-invariant effects, including that from $\beta_i$. 
+
+Now, we assume that workers who never work are non-participants.
+
+```{r}
+invisible(simdata[,worker:=1])
+
+#marking non-participants
+for (k in 1:N) {
+  simdata[t==1 & i==k, q:=p1]
+  simdata[t==2 & i==k, r:=p1]
+}
+invisible(simdata[q==FALSE & r==FALSE,worker:=0])
+
+diffs=cbind(diffs, simdata$worker[1:N])
+pander(summary(diffs[V2==1,lm(dlw ~ dlc + dlh)]))
+
+```
+
+If we run the regression, we drop 84 observations and the results are unchanged. We now verify that this holds if we drop more observations. We now consider workers only those who work in **both** periods.
+
+```{r}
+diffs= diffs[,-5]
+for (k in 1:N) {
+  q = simdata[t==1 & i==k, p1]
+  r = simdata[t==2 & i==k, p1]
+  ifelse((q==FALSE | r==FALSE), simdata[k,12]<-0, simdata[k,12]<-1)
+  ifelse((q==FALSE | r==FALSE), simdata[k+N,12]<-0, simdata[k+N,12]<-1)
+}
+diffs=cbind(diffs, simdata$worker[1:N])
+pander(summary(diffs[V2==1,lm(dlw ~ dlc + dlh)]))
+```
+
+With a broader notion of participation, we drop 168 observations and the regression is still nearly identical. When we take the differences, we remove the effect of any time-invariant factors. As such, as long as we do not interfere with this process, (by somehow adding high X or high $\beta$ agents to one of the periods) there will be no bias in the regression. Indeed, when we remove non-participants, we remove the same agent from both periods and introduce no bias to the regression. 
+
+
 # Repeated cross-section version
 
 In this section we want to get closer to the Blundell, Duncan and Meghir (1998) exercise. We first modify the cost to allow for an increased return to X, and for the presence of a change in the tax rate. Simulate wages according to:
@@ -195,26 +302,16 @@ full_cross_section <- function(lb, N, rho, t){ # draws new X in period 2.
 
  **Q3:** simulate two cross-sections with $(lb=1,\rho=1)$ and $(lb=1.5,\rho=0.8)$ and use 10k indivduals. Simulate data without the participation decision for now. Combine the data and show that previous regression provides biased estimates. Then slice X into K categories (for example using quantiles). Then compute $\log(w)$, $\log(c)$ and $\log(h)$ within each group and time period. Run the regression in first differences and show that this recovers the structural parameters.
  
-The combined data (from two cross-sections with different tax rates) produces biased estimates, $\hat{\eta}$ and $\hat{\gamma}$. We have a similar problem to in Questions 1 and 2; we cannot separate out the individual effects through $\beta_i$ and the effects we want to identify i.e. $\eta$ and $\gamma$.
+The combined data (from two cross-sections with different tax rates) produces biased estimates, $\hat{\eta}$ and $\hat{\gamma}$. We have a similar problem to in Questions 1 and 2; we cannot separate out the individual effects of $\beta_i$ and the effects we want to identify i.e. $\eta$ and $\gamma$.
  
 ```{r simulate data and run regression}
 simdata3 <- rbind(full_cross_section(1,10000,1,0), full_cross_section(1.5,10000,.8,1))
 #simdata2 <- rbind(full_cross_section2(1,10000,1,rnorm(10000)), full_cross_section2(1.5,10000,.8,rnorm(10000)))
 pander(summary(simdata3[,lm(lw ~ log(c) + log(h))]))
 ```
-```{version with same individuals}
-simdata3 <- simdata2[,t := rep(c(0,1),each = 10000)]
-simdataD <- data.table(i=seq(1:N))
-for (iter in 1:N){
-  simdataD[i==iter, lc := log(simdata3[i==iter & t==1, c]) - log(simdata3[i==iter & t==0, c])]
-  simdataD[i==iter, lw := simdata3[i==iter & t==1, lw] - simdata3[i==iter & t==0, lw]]
-  simdataD[i==iter, lh := log(simdata3[i==iter & t==1, h]) - log(simdata3[i==iter & t==0, h])]
-}
-pander(summary(simdataD[,lm(lw ~ lc + lh)]))
-```
+We can follow the example in BDM (1998) and use group estimators to mimic panel data. Then we can take differences and control for (to some extent) the effects of $\beta_i$.
 
-
-```{r, echo=FALSE}
+```{r}
 #using the method suggested
 quantX <- quantile(simdata3$X, seq(0,1,.1))
 
@@ -237,24 +334,9 @@ for (iter in 1:10){
 pander(summary(D[,lm(lw ~ lc + lh)]))
 ```
 
-Following [@BDM1998] we can use an alternative (equivalent) approach to the above group estimation.
-
-```{r}
-# alternative (equivalent) approach, using dummies (see BDM (1998))
-simdata4 <- simdata3[t==0, lw_at := lw]
-simdata4 <- simdata4[t==1, lw_at := log(.8*exp(lw))]
-
-quantX <- quantile(simdata4$X, seq(0,1,.1))
-invisible(simdata4[, q:= 0])
-for (iter in 1:10){
-  simdata4[X > quantX[iter], q := iter]
-}
-model1 <- simdata4[,lm(lw_at ~ t*q)]
-
-```
-
-
  **Q4:** Add the participation decision to the data generating process. Show that the results are now biased.
+ 
+When we take participation into account and remove individuals from the data who do not participate, we see that the estimates are biased. The source of the bias is quite subtle. (assuming it is bias and not imprecision---we should really run the regression many times and check the different estimates to verify biasedness). The grouping relies on the correlation between $X$ and $\beta_i$ being sufficient so that grouping and then taking within group differences *almost* eliminates the effects of $\beta_i$. However, the participation decision breaks the equivalence of group mean $\beta_i$'s across periods.
  
 ```{r include participation decision}
 # using dummies
@@ -279,12 +361,12 @@ pander(summary(pD[,lm(lw ~ lc + lh)]))
  **Q5:** Extend the model to add an excluded variable that affects participation through $\mu$ but not the wage (keep X everywhere). Devise a way improve the estimates by controlling for participation.
  
 ```{r cross-section with IV}
-full_cross_section_IV <- function(lb, N, rho){ # draws new X in period 2.
+full_cross_section_IV <- function(lb, N, rho,t){ # draws new X in period 2.
   #parameters
   p  = list(eta=-1.5,gamma = 0.8,beta=1,beta0=0.1) # define preferences
   
   #simulating data
-  simdata = data.table(i=1:N,X=rnorm(N),Z=rnorm(N)) # add variable Z drawn from rnorm
+  simdata = data.table(i=1:N,X=rnorm(N),Z=rnorm(N),t) # add variable Z drawn from rnorm
   simdata[,lw := lb*X + rnorm(N)*0.2];              # add a wage which depends on X and lb
   simdata[,mu := exp(0.3*X + .4*Z + rnorm(N)*0.2)]; # add non-labor income that also depends on X and now Z
   simdata[,betai := exp(0.5*X+rnorm(N)*0.1)]        # heterogenous betas
@@ -305,19 +387,20 @@ full_cross_section_IV <- function(lb, N, rho){ # draws new X in period 2.
 }
 ```
 
-To control for participation we want to calculate the probability of working based on the observed variables, and then include this as a regressor in the wage equation. We use the excluded variable that affects wealth but not wages as an instrument.
+To control for participation we want to calculate the probability of working based on the observed variables, and then include this as a regressor in the wage equation. We use the excluded variable that affects wealth but not wages as an instrument---without $Z$ we would have nothing that shifts $\mu$ and hence the participation decision.
 
-In the current setup, we could simply include a LPM to calculate the probability of participation and then include the predicted values from this regression in the wage equation:
+In the current setup, we want to find the inverse Mills ratio (iMr) to include as a control for selection. We follow very closely the steps in BDM(1998), where they highlight that a per group, per period iMr can be estimated as:
 
 $$
-  \Pr(u_1 > u_0) = \alpha + \beta_1 X + \beta_2 Z + \varepsilon
+  iMr = \frac{\phi(z)}{\Phi(z)}, \, \text{ where } z := \phi^{-1}(L_{gt})
 $$
+and $L_{gt}$ is the share of individuals in group $g$ who are working in period $t$.
 
 
-```{r control for participation, results="hide"}
+```{r control for participation, results="hide", echo=FALSE}
 rho0=1
 rho1=.8
-simdata2 <- rbind(full_cross_section_IV(1,10000,rho0), full_cross_section_IV(1.5,10000,rho1))
+simdata2 <- rbind(full_cross_section_IV(1,10000,rho0,0), full_cross_section_IV(1.5,10000,rho1,1))
 
 simdata3 <- simdata2[,t := rep(c(0,1),each = 10000)]
 
@@ -329,33 +412,21 @@ simdata3[t==1,rho:=rho1]
 
 #relevant groupings
 #because post-tax wage moves differentially by x
-quantX <- quantile(simdata3$X, seq(0,1,.25))
-for (iter in 1:4){
+quantX <- quantile(simdata3$X, seq(0,1,.1))
+for (iter in 1:10){
   simdata3[X >= quantX[iter], q := iter]
-}
-
-#because mu changes differentially by z (not used)
-quantz <- quantile(simdata3$Z, seq(0,1,.25))
-for (iter in 1:4){
-  simdata3[Z >= quantz[iter], z := iter]
-}
-
-#gives better results than z
-quantmu <- quantile(simdata3$mu, seq(0,1,.25))
-for (iter in 1:4){
-  simdata3[mu >= quantmu[iter], m := iter]
 }
 
 
 # Proportion of workers in group at time (groups defined by x and m, 100 in total)
 invisible(simdata3[, propw:=0])
-for (iter in 1:4){
-  simdata3[q==iter & t==0, propw := mean(p1)]
-  simdata3[q==iter & t==1, propw := mean(p1)]
+for (iter in 1:10){
+  simdata3[q==iter & t==0, propw := qnorm(mean(p1))]
+  simdata3[q==iter & t==1, propw := qnorm(mean(p1))]
 }
 
 #inverse mill ratio by group by time
-invisible(simdata3[,iMr := dnorm(propw)/pnorm(propw)])
+invisible(simdata3[,iMr := dnorm(propw)/(1-pnorm(propw))])
 
 # correct wage (not used)
 #simdata3[,H := ifelse(p1==1, h, 0 )]
@@ -372,4 +443,45 @@ summary(stageone)
 simdata3[,res:=0] 
 simdata3[p1==TRUE,res:=residuals(stageone)]
 ```
+```{r}
+#stage two with iMr 
+stage2 = simdata3[, lm(lw~log(c)+log(h)+res+factor(q)*factor(t)+iMr)]
+pander(summary(stage2))
 
+#get .84 if I use z instead of m.
+#could think harder about choosing the prper number of quantiles/groups.. it was much better with 4x4 instead of 10x 10
+```
+
+```{r selection model}
+quantX <- quantile(simdata3$X, seq(0,1,.1))
+for (iter in 1:10){
+  simdata3[X >= quantX[iter], q := iter]
+}
+
+invisible(simdata3[, propw:= 0])
+for (iter in 1:10){
+  simdata3[q==iter & t==0, propw := qnorm(mean(p1))]
+  simdata3[q==iter & t==1, propw := qnorm(mean(p1))]
+}
+
+#inverse mill ratio by group by time
+invisible(simdata3[,iMr := dnorm(propw)/pnorm(propw)])
+
+# without dummies
+pw0 <- simdata3[p1==TRUE & t==0,mean(lw),by=q]
+pw1 <- simdata3[p1==TRUE & t==1,mean(lw),by=q]
+pc0 <- simdata3[p1==TRUE & t==0,mean(log(c)),by=q]
+pc1 <- simdata3[p1==TRUE & t==1,mean(log(c)),by=q]
+ph0 <- simdata3[p1==TRUE & t==0,mean(log(h)),by=q]
+ph1 <- simdata3[p1==TRUE & t==1,mean(log(h)),by=q]
+iMr0 <- simdata3[p1==TRUE & t==0,mean(iMr),by=q]
+iMr1 <- simdata3[p1==TRUE & t==1,mean(iMr),by=q]
+pD <- data.table(q=2:min(length(pw0[,q]),length(pw1 [,q])+1))
+for (iter in 1:10){
+  pD[q==iter, lw := pw1[q==iter,2] - pw0[q==iter,2]]
+  pD[q==iter, lc := pc1[q==iter,2] - pc0[q==iter,2]]
+  pD[q==iter, lh := ph1[q==iter,2] - ph0[q==iter,2]]
+  pD[q==iter, iMr := iMr1[q==iter,2] - iMr0[q==iter,2]]
+}
+pander(summary(pD[,lm(lw ~ lc + lh + iMr)]))
+```
