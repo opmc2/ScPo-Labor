@@ -237,15 +237,15 @@ $(document).ready(function () {
 <p>Let’s start with studying static labor supply. We will consider the decision of the agent under the following rule:</p>
 <p><span class="math display">\[
 \max_{c,h} \frac{c^{1+\eta}}{1+\eta} - \beta \frac{h^{1+\gamma}}{1+\gamma}\\
-\text{s.t. } c = \rho \cdot w\cdot h -r + \mu - \beta_0 \cdot 1[h&gt;0] \\ 
+\text{s.t. } c = \rho \cdot w\cdot h -r + \mu - \beta_0 \cdot 1\{h&gt;0\} \\ 
 \]</span> The individual takes his wage <span class="math inline">\(w\)</span> as given, he chooses hours of work <span class="math inline">\(h\)</span> and consumption <span class="math inline">\(c\)</span> subject to a given non labor income <span class="math inline">\(\mu\)</span> as well as a tax regime defined by <span class="math inline">\(\rho,r\)</span>. <span class="math inline">\(\beta_0\)</span> is a fixed cost associated with working.</p>
 <p>We note already that the non-labor income can control for dynamic labor supply since we can have <span class="math inline">\(\mu= b_t - (1+r)b_{t+1}\)</span>. This is part of a larger maximization problem where the agents choose optimaly <span class="math inline">\(b_t\)</span> over time. We will get there next time.</p>
 <div id="interior-solution" class="section level3">
 <h3>Interior solution</h3>
-<p>The first order conditions give us <span class="math inline">\(w(wh +r - \mu)^\eta = \beta h^\gamma\)</span>. There is no closed-form but we can very quickly find an interior solution by using Newton maximization on the function <span class="math inline">\(f(x) = w(wh +r - \mu)^\eta - \beta h^\gamma\)</span>. We iterate on</p>
+<p>The first order conditions give us <span class="math inline">\(\rho w(\rho wh -r + \mu -\beta_0 \mathbb{1}\{h&gt;0\})^\eta = \beta h^\gamma\)</span>. There is no closed-form but we can very quickly find an interior solution by using Newton maximization on the function <span class="math inline">\(f(x) = \rho w(\rho wh -r + \mu -\beta_0 \mathbb{1}\{h&gt;0\})^\eta - \beta h^\gamma\)</span>. We iterate on</p>
 <p><span class="math display">\[
-x \leftarrow x - f(x)/f&#39;x)
-\]</span>.</p>
+x \leftarrow x - f(x)/f&#39;x).
+\]</span></p>
 <pre class="r"><code># function which updates choice of hours using Newton step
 # R here is total unearned income (including taxes when not working and all)
 ff.newt &lt;- function(x,w,R,eta,gamma,beta) {
@@ -302,23 +302,23 @@ simdata[, u1 := c^(1+p$eta)/(1+p$eta) - p$beta * h^(1+p$gamma)/(1+p$gamma) ];</c
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
 <td align="center">1.5</td>
-<td align="center">1.458e-17</td>
-<td align="center">1.029e+17</td>
+<td align="center">2.375e-17</td>
+<td align="center">6.315e+16</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
 <td align="center">0.8</td>
-<td align="center">3.726e-17</td>
-<td align="center">2.147e+16</td>
+<td align="center">6.25e-17</td>
+<td align="center">1.28e+16</td>
 <td align="center">0</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">1.123e-16</td>
-<td align="center">3.196e-17</td>
-<td align="center">3.515</td>
-<td align="center">0.0004595</td>
+<td align="center">2.247e-16</td>
+<td align="center">5.197e-17</td>
+<td align="center">4.323</td>
+<td align="center">1.692e-05</td>
 </tr>
 </tbody>
 </table>
@@ -341,7 +341,7 @@ simdata[, u1 := c^(1+p$eta)/(1+p$eta) - p$beta * h^(1+p$gamma)/(1+p$gamma) ];</c
 <tbody>
 <tr class="odd">
 <td align="center">1000</td>
-<td align="center">2.708e-16</td>
+<td align="center">4.491e-16</td>
 <td align="center">1</td>
 <td align="center">1</td>
 </tr>
@@ -381,23 +381,23 @@ ggplot(simdata,aes(x=u0,y=u1)) + geom_point() + geom_abline(linetype=2)</code></
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
 <td align="center">1.5</td>
-<td align="center">1.969e-17</td>
-<td align="center">7.619e+16</td>
+<td align="center">1.955e-17</td>
+<td align="center">7.674e+16</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
 <td align="center">0.8</td>
-<td align="center">7.128e-17</td>
-<td align="center">1.122e+16</td>
+<td align="center">7.306e-17</td>
+<td align="center">1.095e+16</td>
 <td align="center">0</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">3.833e-16</td>
-<td align="center">4.904e-17</td>
-<td align="center">7.817</td>
-<td align="center">1.784e-14</td>
+<td align="center">-1.277e-16</td>
+<td align="center">4.912e-17</td>
+<td align="center">-2.6</td>
+<td align="center">0.009512</td>
 </tr>
 </tbody>
 </table>
@@ -419,8 +419,8 @@ ggplot(simdata,aes(x=u0,y=u1)) + geom_point() + geom_abline(linetype=2)</code></
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">773</td>
-<td align="center">2.826e-16</td>
+<td align="center">774</td>
+<td align="center">2.881e-16</td>
 <td align="center">1</td>
 <td align="center">1</td>
 </tr>
@@ -450,7 +450,11 @@ sfit = summary(simdata[,lm(lw ~ log(c) + log(h) + log(betai))])</code></pre>
 expect_equivalent(coef(sfit)[&quot;log(c)&quot;,1],-p$eta)
 expect_equivalent(coef(sfit)[&quot;log(h)&quot;,1],p$gamma)
 
-sfit = summary(simdata[p1==TRUE,lm(lw ~ log(c) + log(h))])
+sfit1 = summary(simdata[p1==TRUE,lm(lw ~ log(c) + log(h))])
+sfit2 = summary(simdata[p1==TRUE,lm(lw ~ log(c) + log(h) + log(betai))])</code></pre>
+<pre><code>## Warning in summary.lm(simdata[p1 == TRUE, lm(lw ~ log(c) + log(h) +
+## log(betai))]): essentially perfect fit: summary may be unreliable</code></pre>
+<pre class="r"><code>sfit3 &lt;- summary(simdata[,lm(lw ~ log(c) + log(h))])
 expect_false(coef(sfit)[&quot;log(c)&quot;,1]==-p$eta)</code></pre>
 <pre class="r"><code>pander(sfit)</code></pre>
 <table style="width:86%;">
@@ -473,24 +477,98 @@ expect_false(coef(sfit)[&quot;log(c)&quot;,1]==-p$eta)</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
-<td align="center">2.123</td>
-<td align="center">0.02263</td>
-<td align="center">93.84</td>
+<td align="center">1.5</td>
+<td align="center">5.832e-17</td>
+<td align="center">2.572e+16</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
-<td align="center">0.2957</td>
-<td align="center">0.0302</td>
-<td align="center">9.792</td>
-<td align="center">1.58e-21</td>
+<td align="center">0.8</td>
+<td align="center">5.781e-17</td>
+<td align="center">1.384e+16</td>
+<td align="center">0</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>log(betai)</strong></td>
+<td align="center">1</td>
+<td align="center">6.077e-17</td>
+<td align="center">1.646e+16</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>(Intercept)</strong></td>
+<td align="center">1.123e-16</td>
+<td align="center">4.235e-17</td>
+<td align="center">2.653</td>
+<td align="center">0.008114</td>
+</tr>
+</tbody>
+</table>
+<table style="width:85%;">
+<caption>Fitting linear model: lw ~ log(c) + log(h) + log(betai)</caption>
+<colgroup>
+<col width="20%" />
+<col width="30%" />
+<col width="11%" />
+<col width="22%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Observations</th>
+<th align="center">Residual Std. Error</th>
+<th align="center"><span class="math inline">\(R^2\)</span></th>
+<th align="center">Adjusted <span class="math inline">\(R^2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">1000</td>
+<td align="center">3.247e-16</td>
+<td align="center">1</td>
+<td align="center">1</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>pander(sfit1)</code></pre>
+<table style="width:86%;">
+<colgroup>
+<col width="25%" />
+<col width="15%" />
+<col width="18%" />
+<col width="13%" />
+<col width="13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center"> </th>
+<th align="center">Estimate</th>
+<th align="center">Std. Error</th>
+<th align="center">t value</th>
+<th align="center">Pr(&gt;|t|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><strong>log(c)</strong></td>
+<td align="center">2.128</td>
+<td align="center">0.02305</td>
+<td align="center">92.3</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>log(h)</strong></td>
+<td align="center">0.3179</td>
+<td align="center">0.03164</td>
+<td align="center">10.05</td>
+<td align="center">1.468e-22</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">-0.5621</td>
-<td align="center">0.01556</td>
-<td align="center">-36.12</td>
-<td align="center">3.741e-174</td>
+<td align="center">-0.5402</td>
+<td align="center">0.0156</td>
+<td align="center">-34.63</td>
+<td align="center">1.503e-166</td>
 </tr>
 </tbody>
 </table>
@@ -512,10 +590,151 @@ expect_false(coef(sfit)[&quot;log(c)&quot;,1]==-p$eta)</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">857</td>
-<td align="center">0.1564</td>
-<td align="center">0.966</td>
-<td align="center">0.9659</td>
+<td align="center">884</td>
+<td align="center">0.1593</td>
+<td align="center">0.9675</td>
+<td align="center">0.9675</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>pander(sfit2)</code></pre>
+<table style="width:86%;">
+<colgroup>
+<col width="25%" />
+<col width="15%" />
+<col width="18%" />
+<col width="13%" />
+<col width="13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center"> </th>
+<th align="center">Estimate</th>
+<th align="center">Std. Error</th>
+<th align="center">t value</th>
+<th align="center">Pr(&gt;|t|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><strong>log(c)</strong></td>
+<td align="center">1.5</td>
+<td align="center">5.632e-17</td>
+<td align="center">2.663e+16</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>log(h)</strong></td>
+<td align="center">0.8</td>
+<td align="center">6.403e-17</td>
+<td align="center">1.249e+16</td>
+<td align="center">0</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>log(betai)</strong></td>
+<td align="center">1</td>
+<td align="center">6.066e-17</td>
+<td align="center">1.649e+16</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>(Intercept)</strong></td>
+<td align="center">2.39e-16</td>
+<td align="center">4.315e-17</td>
+<td align="center">5.538</td>
+<td align="center">4.04e-08</td>
+</tr>
+</tbody>
+</table>
+<table style="width:85%;">
+<caption>Fitting linear model: lw ~ log(c) + log(h) + log(betai)</caption>
+<colgroup>
+<col width="20%" />
+<col width="30%" />
+<col width="11%" />
+<col width="22%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Observations</th>
+<th align="center">Residual Std. Error</th>
+<th align="center"><span class="math inline">\(R^2\)</span></th>
+<th align="center">Adjusted <span class="math inline">\(R^2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">884</td>
+<td align="center">2.868e-16</td>
+<td align="center">1</td>
+<td align="center">1</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>pander(sfit3)</code></pre>
+<table style="width:86%;">
+<colgroup>
+<col width="25%" />
+<col width="15%" />
+<col width="18%" />
+<col width="13%" />
+<col width="13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center"> </th>
+<th align="center">Estimate</th>
+<th align="center">Std. Error</th>
+<th align="center">t value</th>
+<th align="center">Pr(&gt;|t|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><strong>log(c)</strong></td>
+<td align="center">2.255</td>
+<td align="center">0.01875</td>
+<td align="center">120.3</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td align="center"><strong>log(h)</strong></td>
+<td align="center">0.4689</td>
+<td align="center">0.02824</td>
+<td align="center">16.6</td>
+<td align="center">7.875e-55</td>
+</tr>
+<tr class="odd">
+<td align="center"><strong>(Intercept)</strong></td>
+<td align="center">-0.5032</td>
+<td align="center">0.01527</td>
+<td align="center">-32.95</td>
+<td align="center">1.172e-161</td>
+</tr>
+</tbody>
+</table>
+<table style="width:85%;">
+<caption>Fitting linear model: lw ~ log(c) + log(h)</caption>
+<colgroup>
+<col width="20%" />
+<col width="30%" />
+<col width="11%" />
+<col width="22%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Observations</th>
+<th align="center">Residual Std. Error</th>
+<th align="center"><span class="math inline">\(R^2\)</span></th>
+<th align="center">Adjusted <span class="math inline">\(R^2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">1000</td>
+<td align="center">0.1692</td>
+<td align="center">0.9732</td>
+<td align="center">0.9732</td>
 </tr>
 </tbody>
 </table>
@@ -554,24 +773,24 @@ pander(lbeta)</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
-<td align="center">1.65</td>
-<td align="center">0.06835</td>
-<td align="center">24.14</td>
-<td align="center">7.236e-50</td>
+<td align="center">1.597</td>
+<td align="center">0.06961</td>
+<td align="center">22.94</td>
+<td align="center">4.451e-51</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
-<td align="center">0.4149</td>
-<td align="center">0.06093</td>
-<td align="center">6.81</td>
-<td align="center">3.259e-10</td>
+<td align="center">0.3131</td>
+<td align="center">0.0666</td>
+<td align="center">4.701</td>
+<td align="center">5.797e-06</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">-0.6396</td>
-<td align="center">0.02385</td>
-<td align="center">-26.82</td>
-<td align="center">7.948e-55</td>
+<td align="center">-0.676</td>
+<td align="center">0.02675</td>
+<td align="center">-25.28</td>
+<td align="center">4.026e-56</td>
 </tr>
 </tbody>
 </table>
@@ -593,10 +812,10 @@ pander(lbeta)</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">133</td>
-<td align="center">0.1066</td>
-<td align="center">0.8485</td>
-<td align="center">0.8462</td>
+<td align="center">154</td>
+<td align="center">0.1294</td>
+<td align="center">0.8378</td>
+<td align="center">0.8357</td>
 </tr>
 </tbody>
 </table>
@@ -621,24 +840,24 @@ pander(lbeta)</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
-<td align="center">2.019</td>
-<td align="center">0.03232</td>
-<td align="center">62.46</td>
-<td align="center">2.604e-153</td>
+<td align="center">1.97</td>
+<td align="center">0.03921</td>
+<td align="center">50.24</td>
+<td align="center">1.125e-131</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
-<td align="center">0.4239</td>
-<td align="center">0.046</td>
-<td align="center">9.216</td>
-<td align="center">1.399e-17</td>
+<td align="center">0.3516</td>
+<td align="center">0.0584</td>
+<td align="center">6.021</td>
+<td align="center">6.249e-09</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">-0.2556</td>
-<td align="center">0.04096</td>
-<td align="center">-6.239</td>
-<td align="center">1.899e-09</td>
+<td align="center">-0.2863</td>
+<td align="center">0.04444</td>
+<td align="center">-6.443</td>
+<td align="center">6.087e-10</td>
 </tr>
 </tbody>
 </table>
@@ -661,9 +880,9 @@ pander(lbeta)</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center">250</td>
-<td align="center">0.1279</td>
-<td align="center">0.9537</td>
-<td align="center">0.9534</td>
+<td align="center">0.133</td>
+<td align="center">0.9465</td>
+<td align="center">0.9461</td>
 </tr>
 </tbody>
 </table>
@@ -690,24 +909,24 @@ pander(summary(simdata[(p1==TRUE) &amp; (betai=mean(betai)),lm(lw ~ log(c) + log
 <tbody>
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
-<td align="center">2.123</td>
-<td align="center">0.02263</td>
-<td align="center">93.84</td>
+<td align="center">2.128</td>
+<td align="center">0.02305</td>
+<td align="center">92.3</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
-<td align="center">0.2957</td>
-<td align="center">0.0302</td>
-<td align="center">9.792</td>
-<td align="center">1.58e-21</td>
+<td align="center">0.3179</td>
+<td align="center">0.03164</td>
+<td align="center">10.05</td>
+<td align="center">1.468e-22</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">-0.5621</td>
-<td align="center">0.01556</td>
-<td align="center">-36.12</td>
-<td align="center">3.741e-174</td>
+<td align="center">-0.5402</td>
+<td align="center">0.0156</td>
+<td align="center">-34.63</td>
+<td align="center">1.503e-166</td>
 </tr>
 </tbody>
 </table>
@@ -729,10 +948,10 @@ pander(summary(simdata[(p1==TRUE) &amp; (betai=mean(betai)),lm(lw ~ log(c) + log
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">857</td>
-<td align="center">0.1564</td>
-<td align="center">0.966</td>
-<td align="center">0.9659</td>
+<td align="center">884</td>
+<td align="center">0.1593</td>
+<td align="center">0.9675</td>
+<td align="center">0.9675</td>
 </tr>
 </tbody>
 </table>
@@ -769,6 +988,8 @@ diffs$dlw[j]= simdata[(t==2) &amp; (i==j), lw]-simdata[(t==1) &amp; (i==j),lw]
 }</code></pre>
 <pre class="r"><code># Regressions
 pander(summary(diffs[,lm(dlw ~ dlc + dlh)]))</code></pre>
+<pre><code>## Warning in summary.lm(diffs[, lm(dlw ~ dlc + dlh)]): essentially perfect
+## fit: summary may be unreliable</code></pre>
 <table style="width:86%;">
 <colgroup>
 <col width="25%" />
@@ -790,23 +1011,23 @@ pander(summary(diffs[,lm(dlw ~ dlc + dlh)]))</code></pre>
 <tr class="odd">
 <td align="center"><strong>dlc</strong></td>
 <td align="center">1.5</td>
-<td align="center">9.516e-17</td>
-<td align="center">1.576e+16</td>
+<td align="center">8.661e-17</td>
+<td align="center">1.732e+16</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>dlh</strong></td>
 <td align="center">0.8</td>
-<td align="center">1.13e-16</td>
-<td align="center">7.082e+15</td>
+<td align="center">1.092e-16</td>
+<td align="center">7.326e+15</td>
 <td align="center">0</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">-1.712e-17</td>
-<td align="center">8.931e-18</td>
-<td align="center">-1.916</td>
-<td align="center">0.0556</td>
+<td align="center">-1.665e-17</td>
+<td align="center">8.013e-18</td>
+<td align="center">-2.078</td>
+<td align="center">0.03799</td>
 </tr>
 </tbody>
 </table>
@@ -829,7 +1050,7 @@ pander(summary(diffs[,lm(dlw ~ dlc + dlh)]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center">1000</td>
-<td align="center">2.819e-16</td>
+<td align="center">2.531e-16</td>
 <td align="center">1</td>
 <td align="center">1</td>
 </tr>
@@ -850,6 +1071,8 @@ invisible(simdata[q==FALSE &amp; r==FALSE,worker:=0])
 
 diffs=cbind(diffs, simdata$worker[1:N])
 pander(summary(diffs[V2==1,lm(dlw ~ dlc + dlh)]))</code></pre>
+<pre><code>## Warning in summary.lm(diffs[V2 == 1, lm(dlw ~ dlc + dlh)]): essentially
+## perfect fit: summary may be unreliable</code></pre>
 <table style="width:86%;">
 <colgroup>
 <col width="25%" />
@@ -871,23 +1094,23 @@ pander(summary(diffs[V2==1,lm(dlw ~ dlc + dlh)]))</code></pre>
 <tr class="odd">
 <td align="center"><strong>dlc</strong></td>
 <td align="center">1.5</td>
-<td align="center">9.516e-17</td>
-<td align="center">1.576e+16</td>
+<td align="center">8.661e-17</td>
+<td align="center">1.732e+16</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>dlh</strong></td>
 <td align="center">0.8</td>
-<td align="center">1.13e-16</td>
-<td align="center">7.082e+15</td>
+<td align="center">1.092e-16</td>
+<td align="center">7.326e+15</td>
 <td align="center">0</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">-1.712e-17</td>
-<td align="center">8.931e-18</td>
-<td align="center">-1.916</td>
-<td align="center">0.0556</td>
+<td align="center">-1.665e-17</td>
+<td align="center">8.013e-18</td>
+<td align="center">-2.078</td>
+<td align="center">0.03799</td>
 </tr>
 </tbody>
 </table>
@@ -910,7 +1133,7 @@ pander(summary(diffs[V2==1,lm(dlw ~ dlc + dlh)]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center">1000</td>
-<td align="center">2.819e-16</td>
+<td align="center">2.531e-16</td>
 <td align="center">1</td>
 <td align="center">1</td>
 </tr>
@@ -947,23 +1170,23 @@ pander(summary(diffs[V2==1,lm(dlw ~ dlc + dlh)]))</code></pre>
 <tr class="odd">
 <td align="center"><strong>dlc</strong></td>
 <td align="center">1.5</td>
-<td align="center">1.2e-16</td>
-<td align="center">1.25e+16</td>
+<td align="center">1.205e-16</td>
+<td align="center">1.245e+16</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>dlh</strong></td>
 <td align="center">0.8</td>
-<td align="center">1.95e-16</td>
-<td align="center">4.103e+15</td>
+<td align="center">2.045e-16</td>
+<td align="center">3.912e+15</td>
 <td align="center">0</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">-1.231e-17</td>
-<td align="center">9.888e-18</td>
-<td align="center">-1.245</td>
-<td align="center">0.2137</td>
+<td align="center">-1.447e-17</td>
+<td align="center">9.857e-18</td>
+<td align="center">-1.468</td>
+<td align="center">0.1425</td>
 </tr>
 </tbody>
 </table>
@@ -985,8 +1208,8 @@ pander(summary(diffs[V2==1,lm(dlw ~ dlc + dlh)]))</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">827</td>
-<td align="center">2.836e-16</td>
+<td align="center">828</td>
+<td align="center">2.835e-16</td>
 <td align="center">1</td>
 <td align="center">1</td>
 </tr>
@@ -1074,23 +1297,23 @@ pander(summary(simdata3[,lm(lw ~ log(c) + log(h))]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
-<td align="center">2.234</td>
-<td align="center">0.002894</td>
-<td align="center">772.2</td>
+<td align="center">2.242</td>
+<td align="center">0.002858</td>
+<td align="center">784.4</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
-<td align="center">0.6075</td>
-<td align="center">0.00493</td>
-<td align="center">123.2</td>
+<td align="center">0.6058</td>
+<td align="center">0.004866</td>
+<td align="center">124.5</td>
 <td align="center">0</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">-0.3026</td>
-<td align="center">0.004016</td>
-<td align="center">-75.36</td>
+<td align="center">-0.3075</td>
+<td align="center">0.00398</td>
+<td align="center">-77.25</td>
 <td align="center">0</td>
 </tr>
 </tbody>
@@ -1114,9 +1337,9 @@ pander(summary(simdata3[,lm(lw ~ log(c) + log(h))]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center">20000</td>
-<td align="center">0.2239</td>
-<td align="center">0.9694</td>
-<td align="center">0.9694</td>
+<td align="center">0.2222</td>
+<td align="center">0.9701</td>
+<td align="center">0.9701</td>
 </tr>
 </tbody>
 </table>
@@ -1160,24 +1383,24 @@ pander(summary(D[,lm(lw ~ lc + lh)]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center"><strong>lc</strong></td>
-<td align="center">1.491</td>
-<td align="center">0.009171</td>
-<td align="center">162.6</td>
-<td align="center">8.79e-14</td>
+<td align="center">1.508</td>
+<td align="center">0.01139</td>
+<td align="center">132.5</td>
+<td align="center">3.688e-13</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>lh</strong></td>
-<td align="center">0.7852</td>
-<td align="center">0.00583</td>
-<td align="center">134.7</td>
-<td align="center">3.282e-13</td>
+<td align="center">0.7991</td>
+<td align="center">0.007168</td>
+<td align="center">111.5</td>
+<td align="center">1.233e-12</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">0.2209</td>
-<td align="center">0.001707</td>
-<td align="center">129.4</td>
-<td align="center">4.333e-13</td>
+<td align="center">0.2221</td>
+<td align="center">0.002118</td>
+<td align="center">104.9</td>
+<td align="center">1.889e-12</td>
 </tr>
 </tbody>
 </table>
@@ -1200,7 +1423,7 @@ pander(summary(D[,lm(lw ~ lc + lh)]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center">10</td>
-<td align="center">0.004329</td>
+<td align="center">0.005299</td>
 <td align="center">0.9999</td>
 <td align="center">0.9999</td>
 </tr>
@@ -1230,44 +1453,44 @@ pander(summary(simdata3[p1==TRUE,lm(lw ~ log(c) + log(h) + t + q + t:q)]))</code
 <tbody>
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
-<td align="center">1.684</td>
-<td align="center">0.005157</td>
-<td align="center">326.5</td>
+<td align="center">1.678</td>
+<td align="center">0.005191</td>
+<td align="center">323.3</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
-<td align="center">0.4374</td>
-<td align="center">0.005794</td>
-<td align="center">75.48</td>
+<td align="center">0.4432</td>
+<td align="center">0.005873</td>
+<td align="center">75.46</td>
 <td align="center">0</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>t</strong></td>
-<td align="center">0.2449</td>
-<td align="center">0.007337</td>
-<td align="center">33.38</td>
-<td align="center">7.414e-236</td>
+<td align="center">0.2215</td>
+<td align="center">0.007527</td>
+<td align="center">29.42</td>
+<td align="center">4.547e-185</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>q</strong></td>
-<td align="center">0.09517</td>
-<td align="center">0.0008994</td>
-<td align="center">105.8</td>
+<td align="center">0.09647</td>
+<td align="center">0.0009086</td>
+<td align="center">106.2</td>
 <td align="center">0</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>t:q</strong></td>
-<td align="center">-0.00539</td>
-<td align="center">0.001042</td>
-<td align="center">-5.171</td>
-<td align="center">2.358e-07</td>
+<td align="center">-0.00241</td>
+<td align="center">0.001059</td>
+<td align="center">-2.275</td>
+<td align="center">0.02292</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">-0.8194</td>
-<td align="center">0.004142</td>
-<td align="center">-197.8</td>
+<td align="center">-0.8233</td>
+<td align="center">0.004189</td>
+<td align="center">-196.5</td>
 <td align="center">0</td>
 </tr>
 </tbody>
@@ -1290,10 +1513,10 @@ pander(summary(simdata3[p1==TRUE,lm(lw ~ log(c) + log(h) + t + q + t:q)]))</code
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">15305</td>
-<td align="center">0.1184</td>
-<td align="center">0.9857</td>
-<td align="center">0.9857</td>
+<td align="center">15157</td>
+<td align="center">0.1185</td>
+<td align="center">0.9853</td>
+<td align="center">0.9853</td>
 </tr>
 </tbody>
 </table>
@@ -1331,24 +1554,24 @@ pander(summary(pD[,lm(lw ~ lc + lh)]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center"><strong>lc</strong></td>
-<td align="center">1.49</td>
-<td align="center">0.01085</td>
-<td align="center">137.3</td>
-<td align="center">1.005e-11</td>
+<td align="center">1.471</td>
+<td align="center">0.02354</td>
+<td align="center">62.48</td>
+<td align="center">1.13e-09</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>lh</strong></td>
-<td align="center">0.7791</td>
-<td align="center">0.05651</td>
-<td align="center">13.79</td>
-<td align="center">9.059e-06</td>
+<td align="center">1.058</td>
+<td align="center">0.104</td>
+<td align="center">10.18</td>
+<td align="center">5.235e-05</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">0.2209</td>
-<td align="center">0.001934</td>
-<td align="center">114.3</td>
-<td align="center">3.03e-11</td>
+<td align="center">0.2233</td>
+<td align="center">0.00496</td>
+<td align="center">45.02</td>
+<td align="center">8.041e-09</td>
 </tr>
 </tbody>
 </table>
@@ -1371,9 +1594,9 @@ pander(summary(pD[,lm(lw ~ lc + lh)]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center">9</td>
-<td align="center">0.00569</td>
-<td align="center">0.9998</td>
-<td align="center">0.9997</td>
+<td align="center">0.0146</td>
+<td align="center">0.9986</td>
+<td align="center">0.9981</td>
 </tr>
 </tbody>
 </table>
@@ -1408,7 +1631,7 @@ pander(summary(pD[,lm(lw ~ lc + lh)]))</code></pre>
   iMr = \frac{\phi(z)}{\Phi(z)}, \, \text{ where } z := \phi^{-1}(L_{gt})
 \]</span> and <span class="math inline">\(L_{gt}\)</span> is the share of individuals in group <span class="math inline">\(g\)</span> who are working in period <span class="math inline">\(t\)</span>.</p>
 <pre class="r"><code>#stage two with iMr 
-stage2 = simdata3[, lm(lw~log(c)+log(h)+res+factor(q)*factor(t)+iMr)]
+stage2 = simdata3[p1==TRUE, lm(lw~log(c)+log(h)+res+factor(q)*factor(t)+iMr)]
 pander(summary(stage2))</code></pre>
 <table>
 <colgroup>
@@ -1430,156 +1653,135 @@ pander(summary(stage2))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center"><strong>log(c)</strong></td>
-<td align="center">1.315</td>
-<td align="center">0.007413</td>
-<td align="center">177.4</td>
+<td align="center">1.31</td>
+<td align="center">0.006488</td>
+<td align="center">202</td>
 <td align="center">0</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>log(h)</strong></td>
-<td align="center">0.6816</td>
-<td align="center">0.003813</td>
-<td align="center">178.8</td>
-<td align="center">0</td>
+<td align="center">0.712</td>
+<td align="center">0.1368</td>
+<td align="center">5.203</td>
+<td align="center">1.989e-07</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>res</strong></td>
-<td align="center">0.2772</td>
-<td align="center">0.005992</td>
-<td align="center">46.27</td>
-<td align="center">0</td>
+<td align="center">-0.09209</td>
+<td align="center">0.1367</td>
+<td align="center">-0.6736</td>
+<td align="center">0.5006</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>factor(q)2</strong></td>
-<td align="center">0.2848</td>
-<td align="center">0.00892</td>
-<td align="center">31.93</td>
-<td align="center">5.415e-218</td>
+<td align="center">0.2706</td>
+<td align="center">0.05622</td>
+<td align="center">4.814</td>
+<td align="center">1.501e-06</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>factor(q)3</strong></td>
-<td align="center">0.4145</td>
-<td align="center">0.01199</td>
-<td align="center">34.58</td>
-<td align="center">3.776e-254</td>
+<td align="center">0.4316</td>
+<td align="center">0.09209</td>
+<td align="center">4.687</td>
+<td align="center">2.808e-06</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>factor(q)4</strong></td>
-<td align="center">0.5074</td>
-<td align="center">0.01542</td>
-<td align="center">32.91</td>
-<td align="center">4.905e-231</td>
+<td align="center">0.5835</td>
+<td align="center">0.115</td>
+<td align="center">5.074</td>
+<td align="center">3.957e-07</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>factor(q)5</strong></td>
-<td align="center">0.6033</td>
-<td align="center">0.01799</td>
-<td align="center">33.53</td>
-<td align="center">1.829e-239</td>
+<td align="center">0.7112</td>
+<td align="center">0.1379</td>
+<td align="center">5.157</td>
+<td align="center">2.544e-07</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>factor(q)6</strong></td>
-<td align="center">0.681</td>
-<td align="center">0.02077</td>
-<td align="center">32.79</td>
-<td align="center">1.871e-229</td>
+<td align="center">0.8352</td>
+<td align="center">0.1563</td>
+<td align="center">5.342</td>
+<td align="center">9.34e-08</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>factor(q)7</strong></td>
-<td align="center">0.7625</td>
-<td align="center">0.02406</td>
-<td align="center">31.69</td>
-<td align="center">7.023e-215</td>
+<td align="center">0.9534</td>
+<td align="center">0.1749</td>
+<td align="center">5.451</td>
+<td align="center">5.104e-08</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>factor(q)8</strong></td>
-<td align="center">0.8326</td>
-<td align="center">0.02894</td>
-<td align="center">28.77</td>
-<td align="center">2.954e-178</td>
+<td align="center">1.094</td>
+<td align="center">0.198</td>
+<td align="center">5.524</td>
+<td align="center">3.379e-08</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>factor(q)9</strong></td>
-<td align="center">0.9641</td>
-<td align="center">0.03412</td>
-<td align="center">28.26</td>
-<td align="center">3.827e-172</td>
+<td align="center">1.262</td>
+<td align="center">0.2231</td>
+<td align="center">5.658</td>
+<td align="center">1.565e-08</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>factor(q)10</strong></td>
-<td align="center">1.316</td>
-<td align="center">0.03351</td>
-<td align="center">39.27</td>
-<td align="center">0</td>
-</tr>
-<tr class="odd">
 <td align="center"><strong>factor(t)1</strong></td>
-<td align="center">0.1857</td>
-<td align="center">0.004239</td>
-<td align="center">43.8</td>
+<td align="center">0.2371</td>
+<td align="center">0.00435</td>
+<td align="center">54.51</td>
 <td align="center">0</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="center"><strong>iMr</strong></td>
-<td align="center">0.2369</td>
-<td align="center">0.01324</td>
-<td align="center">17.89</td>
-<td align="center">5.408e-71</td>
+<td align="center">0.07707</td>
+<td align="center">0.03504</td>
+<td align="center">2.2</td>
+<td align="center">0.02785</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="center"><strong>factor(q)2:factor(t)1</strong></td>
-<td align="center">0.1278</td>
-<td align="center">0.01114</td>
-<td align="center">11.48</td>
-<td align="center">2.179e-30</td>
+<td align="center">-0.01112</td>
+<td align="center">0.04842</td>
+<td align="center">-0.2297</td>
+<td align="center">0.8183</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="center"><strong>factor(q)3:factor(t)1</strong></td>
-<td align="center">0.1518</td>
-<td align="center">0.01159</td>
-<td align="center">13.09</td>
-<td align="center">5.424e-39</td>
+<td align="center">-0.01359</td>
+<td align="center">0.043</td>
+<td align="center">-0.316</td>
+<td align="center">0.752</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="center"><strong>factor(q)4:factor(t)1</strong></td>
-<td align="center">0.1575</td>
-<td align="center">0.01132</td>
-<td align="center">13.91</td>
-<td align="center">8.52e-44</td>
+<td align="center">-0.004813</td>
+<td align="center">0.02816</td>
+<td align="center">-0.1709</td>
+<td align="center">0.8643</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="center"><strong>factor(q)5:factor(t)1</strong></td>
-<td align="center">0.1508</td>
-<td align="center">0.01035</td>
-<td align="center">14.58</td>
-<td align="center">7.052e-48</td>
+<td align="center">-0.00589</td>
+<td align="center">0.01975</td>
+<td align="center">-0.2982</td>
+<td align="center">0.7656</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="center"><strong>factor(q)6:factor(t)1</strong></td>
-<td align="center">0.09737</td>
-<td align="center">0.008095</td>
-<td align="center">12.03</td>
-<td align="center">3.351e-33</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>factor(q)7:factor(t)1</strong></td>
-<td align="center">0.05357</td>
-<td align="center">0.007101</td>
-<td align="center">7.544</td>
-<td align="center">4.763e-14</td>
+<td align="center">-0.006318</td>
+<td align="center">0.009382</td>
+<td align="center">-0.6734</td>
+<td align="center">0.5007</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>factor(q)8:factor(t)1</strong></td>
-<td align="center">0.0448</td>
-<td align="center">0.007135</td>
-<td align="center">6.279</td>
-<td align="center">3.477e-10</td>
-</tr>
-<tr class="even">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">-1.113</td>
-<td align="center">0.00947</td>
-<td align="center">-117.5</td>
+<td align="center">-0.9075</td>
+<td align="center">0.01759</td>
+<td align="center">-51.59</td>
 <td align="center">0</td>
 </tr>
 </tbody>
@@ -1602,10 +1804,10 @@ pander(summary(stage2))</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">19023</td>
-<td align="center">0.1257</td>
-<td align="center">0.9884</td>
-<td align="center">0.9884</td>
+<td align="center">11738</td>
+<td align="center">0.104</td>
+<td align="center">0.9767</td>
+<td align="center">0.9767</td>
 </tr>
 </tbody>
 </table>
@@ -1662,31 +1864,31 @@ pander(summary(pD[,lm(lw ~ lc + lh + iMr)]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center"><strong>lc</strong></td>
-<td align="center">1.535</td>
-<td align="center">0.02685</td>
-<td align="center">57.15</td>
-<td align="center">3.102e-08</td>
+<td align="center">1.502</td>
+<td align="center">0.01815</td>
+<td align="center">82.78</td>
+<td align="center">4.875e-09</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>lh</strong></td>
-<td align="center">0.7937</td>
-<td align="center">0.0914</td>
-<td align="center">8.684</td>
-<td align="center">0.0003349</td>
+<td align="center">0.7699</td>
+<td align="center">0.08549</td>
+<td align="center">9.006</td>
+<td align="center">0.0002818</td>
 </tr>
 <tr class="odd">
 <td align="center"><strong>iMr</strong></td>
-<td align="center">0.02118</td>
-<td align="center">0.02783</td>
-<td align="center">0.7613</td>
-<td align="center">0.4808</td>
+<td align="center">0.003573</td>
+<td align="center">0.01959</td>
+<td align="center">0.1824</td>
+<td align="center">0.8625</td>
 </tr>
 <tr class="even">
 <td align="center"><strong>(Intercept)</strong></td>
-<td align="center">0.2192</td>
-<td align="center">0.004432</td>
-<td align="center">49.46</td>
-<td align="center">6.387e-08</td>
+<td align="center">0.225</td>
+<td align="center">0.002797</td>
+<td align="center">80.46</td>
+<td align="center">5.62e-09</td>
 </tr>
 </tbody>
 </table>
@@ -1709,9 +1911,9 @@ pander(summary(pD[,lm(lw ~ lc + lh + iMr)]))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="center">9</td>
-<td align="center">0.007999</td>
+<td align="center">0.006009</td>
+<td align="center">0.9998</td>
 <td align="center">0.9997</td>
-<td align="center">0.9996</td>
 </tr>
 </tbody>
 </table>

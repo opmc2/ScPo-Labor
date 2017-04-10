@@ -19,7 +19,7 @@ Let's start with studying static labor supply. We will consider the decision of 
 
 $$
 \max_{c,h} \frac{c^{1+\eta}}{1+\eta} - \beta \frac{h^{1+\gamma}}{1+\gamma}\\
-\text{s.t. } c = \rho \cdot w\cdot h -r + \mu - \beta_0 \cdot 1[h>0] \\ 
+\text{s.t. } c = \rho \cdot w\cdot h -r + \mu - \beta_0 \cdot 1\{h>0\} \\ 
 $$
 The individual takes his wage $w$ as given, he chooses hours of work $h$ and consumption $c$ subject to a given non labor income $\mu$ as well as a tax regime defined by $\rho,r$. $\beta_0$ is a fixed cost associated with working.
 
@@ -27,11 +27,11 @@ We note already that the non-labor income can control for dynamic labor supply s
 
 ### Interior solution
 
-The first order conditions give us $w(wh +r - \mu)^\eta = \beta h^\gamma$. There is no closed-form but we can very quickly find an interior solution by using Newton maximization on the function $f(x) = w(wh +r - \mu)^\eta - \beta h^\gamma$. We iterate on 
+The first order conditions give us $\rho w(\rho wh -r + \mu -\beta_0 \mathbb{1}\{h>0\})^\eta = \beta h^\gamma$. There is no closed-form but we can very quickly find an interior solution by using Newton maximization on the function $f(x) = \rho w(\rho wh -r + \mu -\beta_0 \mathbb{1}\{h>0\})^\eta - \beta h^\gamma$. We iterate on 
 
 $$
-x \leftarrow x - f(x)/f'x)
-$$.
+x \leftarrow x - f(x)/f'x).
+$$
 
 ```{r}
 # function which updates choice of hours using Newton step
@@ -116,12 +116,17 @@ expect_equivalent(sfit$r.squared,1)
 expect_equivalent(coef(sfit)["log(c)",1],-p$eta)
 expect_equivalent(coef(sfit)["log(h)",1],p$gamma)
 
-sfit = summary(simdata[p1==TRUE,lm(lw ~ log(c) + log(h))])
+sfit1 = summary(simdata[p1==TRUE,lm(lw ~ log(c) + log(h))])
+sfit2 = summary(simdata[p1==TRUE,lm(lw ~ log(c) + log(h) + log(betai))])
+sfit3 <- summary(simdata[,lm(lw ~ log(c) + log(h))])
 expect_false(coef(sfit)["log(c)",1]==-p$eta)
 ```
 
 ```{r, ,results='asis'}
 pander(sfit)
+pander(sfit1)
+pander(sfit2)
+pander(sfit3)
 ```
 
 # Short Panel version 
@@ -436,7 +441,7 @@ invisible(simdata3[,iMr := dnorm(propw)/(1-pnorm(propw))])
 lptw <- simdata3[p1 == TRUE, log(rho*exp(lw))]
 ########## Regressions ##################################
 #First stage- get residuals from post-tax wage on group and time dummies
-stageone = simdata3[p1==TRUE,lm(lptw~factor(q)*factor(t))]
+stageone = simdata3[p1==TRUE,lm(log(h)~factor(q)*factor(t))]
 summary(stageone)
 
 #set residuals ==0 for non workers
@@ -445,7 +450,7 @@ simdata3[p1==TRUE,res:=residuals(stageone)]
 ```
 ```{r}
 #stage two with iMr 
-stage2 = simdata3[, lm(lw~log(c)+log(h)+res+factor(q)*factor(t)+iMr)]
+stage2 = simdata3[p1==TRUE, lm(lw~log(c)+log(h)+res+factor(q)*factor(t)+iMr)]
 pander(summary(stage2))
 
 #get .84 if I use z instead of m.
